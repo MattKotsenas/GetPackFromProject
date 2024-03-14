@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>GetPackFromProject.IntegrationTests</RootNamespace>
+    <AssemblyName>$(RootNamespace)</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="fluentassertions" Version="6.12.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="msbuild.projectcreation" Version="11.1.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\ValidateGeneratePackageOnBuild\ValidateGeneratePackageOnBuild.csproj" ReferenceOutputAssembly="false" />
+    <Content Include="$(ArtifactsPath)\bin\ValidateGeneratePackageOnBuild\$(Configuration)_net6.0\build\**\*.*">
+      <Link>build\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(ArtifactsPath)\bin\ValidateGeneratePackageOnBuild\$(Configuration)_net6.0\GetPackFromProject.MSBuild.ValidateGeneratePackageOnBuild.dll">
+      <Link>tasks\netcore\%(Filename).dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(ArtifactsPath)\bin\ValidateGeneratePackageOnBuild\$(Configuration)_net462\GetPackFromProject.MSBuild.ValidateGeneratePackageOnBuild.dll">
+      <Link>tasks\netfx\%(Filename).dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

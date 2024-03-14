@@ -1,0 +1,27 @@
+<Project>
+
+  <Target Name="AddProjectPackagesAsOutput" BeforeTargets="Build">
+    <ItemGroup>
+      <_ProjectsToCopy Include="%(ProjectReference.Identity)" Condition="'%(ProjectReference.AddPackageAsOutput)'  == 'true'" />
+    </ItemGroup>
+
+    <Message Text="Projects to copy @(_ProjectsToCopy)" Importance="Low" />
+
+    <ValidateGeneratePackageOnBuild Condition="'@(_ProjectsToCopy)' != ''" ProjectFile="@(_ProjectsToCopy)" AttachDebugger="$(ValidateGeneratePackageOnBuildShouldDebug)" />
+
+    <!-- TODO: Ideally we could rely on a public API and not a private target -->
+    <MSBuild Projects="@(_ProjectsToCopy)" Targets="_GetOutputItemsFromPack">
+      <Output TaskParameter="TargetOutputs" ItemName="_DependentPackageOutputs" />
+    </MSBuild>
+
+    <Message Text="Dependent TargetOutputs is '@(_DependentPackageOutputs)'" Importance="Low" />
+
+    <ItemGroup Condition="'@(_ProjectsToCopy)' != ''">
+      <Content Include="%(_DependentPackageOutputs.Identity)" Condition="'$([System.IO.Path]::GetExtension(%(_DependentPackageOutputs.Identity)))' == '.nupkg'" CopyToOutputDirectory="PreserveNewest">
+        <IsPackageFromProjectReference>true</IsPackageFromProjectReference>
+        <Project>%(_DependentPackageOutputs.Identity)</Project> <!-- TODO: Instead of identity this should be the corresponding _ProjectsToCopy -->
+      </Content>
+    </ItemGroup>
+  </Target>
+
+</Project>
