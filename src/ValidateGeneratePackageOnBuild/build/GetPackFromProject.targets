@@ -19,7 +19,7 @@
     <ItemGroup Condition="'@(_ProjectsToCopy)' != ''">
       <!-- Update the ProjectReference with its outputs to make finding them easier for users -->
       <ProjectReference Update="%(ProjectReference.Identity)">
-        <PackageOutputs>%(_DependentPackageOutputs.Identity)</PackageOutputs>
+        <PackageOutputs>@(_DependentPackageOutputs)</PackageOutputs>
       </ProjectReference>
 
       <!-- Add the .nupkg(s) as Content so users can copy them to output / embed them, etc. -->

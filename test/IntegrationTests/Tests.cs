@@ -86,51 +86,58 @@ public class GivenAProjectWithAProjectReference: TestBase
         [Fact]
         public void ShouldPassWhenLeafProjectHasProperty()
         {
-            string fromProjectReferenceMetadata = "Content has metadata:";
-            string projectMetadata = "ProjectReference has metadata:";
+            string contentHasMetadata = "Content has metadata:";
+            string projectsWithMetadata = "ProjectReferences with metadata:";
+            string projectMetadata = "ProjectReferencesMetadata:";
 
+            using (PackageRepository.Create(Temp.FullName))
             {
-                using (PackageRepository.Create(Temp.FullName))
-                {
-                    ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: true).Save(Path.Combine(Temp.FullName, "Leaf.csproj"));
+                ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: true).Save(Path.Combine(Temp.FullName, "Leaf.csproj"));
 
-                    ProjectCreator.Templates.ProjectThatImportsTargets(WorkingDirectory, creator => creator
-                        .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
-                        {
+                ProjectCreator.Templates.ProjectThatImportsTargets(WorkingDirectory, creator => creator
+                    .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
+                    {
                         { "AddPackageAsOutput", "true" }
-                        }))
-                        .Target("PrintContentItemsTestValidation", afterTargets: "Build")
-                            .Task(name: "Message", parameters: new Dictionary<string, string?>
-                            {
-                            { "Text", $"{fromProjectReferenceMetadata}@(Content->WithMetadataValue('IsPackageFromProjectReference', 'true'))" },
+                    }))
+                    .Target("PrintContentItemsTestValidation", afterTargets: "Build")
+                        .Task(name: "Message", parameters: new Dictionary<string, string?>
+                        {
+                            { "Text", $"{contentHasMetadata}@(Content->WithMetadataValue('IsPackageFromProjectReference', 'true'))" },
                             { "Importance", "High" }
-                            })
-                            .Task(name: "Message", parameters: new Dictionary<string, string?>
-                            {
-                            { "Text", $"{projectMetadata}@(ProjectReference->HasMetadata('PackageOutputs'))" },
+                        })
+                        .Task(name: "Message", parameters: new Dictionary<string, string?>
+                        {
+                            { "Text", $"{projectsWithMetadata}@(ProjectReference->HasMetadata('PackageOutputs'))" },
                             { "Importance", "High" }
-                            })
-                        .Save(Path.Combine(Temp.FullName, $"Sample.csproj"))
-                        .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
+                        })
+                        .Task(name: "Message", parameters: new Dictionary<string, string?>
+                        {
+                            { "Text", $"{projectMetadata}%(ProjectReference.PackageOutputs)" },
+                            { "Importance", "High" }
+                        })
+                    .Save(Path.Combine(Temp.FullName, $"Sample.csproj"))
+                    .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
-                    buildOutput.ErrorEvents.Should().BeEmpty();
-                    buildOutput.WarningEvents.Should().BeEmpty();
+                buildOutput.ErrorEvents.Should().BeEmpty();
+                buildOutput.WarningEvents.Should().BeEmpty();
 
-                    buildOutput.Messages
-                        .Should()
-                        .ContainSingle(message => message.StartsWith(fromProjectReferenceMetadata))
-                        .Which.Should()
-                        .MatchEquivalentOf($"{fromProjectReferenceMetadata}{Temp.FullName}\\bin\\Debug\\Leaf.1.0.0.nupkg");
-                    buildOutput.Messages
-                        .Should()
-                        .ContainSingle(message => message.StartsWith(projectMetadata))
-                        .Which.Should()
-                        .MatchEquivalentOf($"{projectMetadata}{leafProject.FullPath}");
+                buildOutput.Messages
+                    .Should()
+                    .ContainSingle(message => message.StartsWith(contentHasMetadata))
+                    .Which.Should()
+                    .MatchEquivalentOf($"{contentHasMetadata}{Temp.FullName}\\bin\\Debug\\Leaf.1.0.0.nupkg");
+                buildOutput.Messages
+                    .Should()
+                    .ContainSingle(message => message.StartsWith(projectsWithMetadata))
+                    .Which.Should()
+                    .MatchEquivalentOf($"{projectsWithMetadata}{leafProject.FullPath}");
+                buildOutput.Messages
+                    .Should()
+                    .ContainSingle(message => message.StartsWith(projectMetadata))
+                    .Which.Should()
+                    .MatchEquivalentOf($"{projectMetadata}{Temp.FullName}\\bin\\Debug\\Leaf.1.0.0.nupkg;{Temp.FullName}\\obj\\Debug\\Leaf.1.0.0.nuspec");
 
-                    // TODO: Ensure that the metadata on <ProjectReference> is set correctly
-
-                    result.Should().BeTrue();
-                }
+                result.Should().BeTrue();
             }
         }
     }
