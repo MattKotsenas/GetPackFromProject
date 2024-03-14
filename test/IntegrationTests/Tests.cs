@@ -86,8 +86,8 @@ public class GivenAProjectWithAProjectReference: TestBase
         [Fact]
         public void ShouldPassWhenLeafProjectHasProperty()
         {
-            string fromProjectReferenceMetadata = "Content with 'FromProjectReference' metadata:";
-            string projectMetadata = "Content has 'Project' metadata:";
+            string fromProjectReferenceMetadata = "Content has metadata:";
+            string projectMetadata = "ProjectReference has metadata:";
 
             {
                 using (PackageRepository.Create(Temp.FullName))
@@ -107,7 +107,7 @@ public class GivenAProjectWithAProjectReference: TestBase
                             })
                             .Task(name: "Message", parameters: new Dictionary<string, string?>
                             {
-                            { "Text", $"{projectMetadata}@(Content->HasMetadata('Project'))" },
+                            { "Text", $"{projectMetadata}@(ProjectReference->HasMetadata('PackageOutputs'))" },
                             { "Importance", "High" }
                             })
                         .Save(Path.Combine(Temp.FullName, $"Sample.csproj"))
@@ -123,10 +123,11 @@ public class GivenAProjectWithAProjectReference: TestBase
                         .MatchEquivalentOf($"{fromProjectReferenceMetadata}{Temp.FullName}\\bin\\Debug\\Leaf.1.0.0.nupkg");
                     buildOutput.Messages
                         .Should()
-                        .ContainSingle(message => message.StartsWith(projectMetadata));
-                    // TODO: Fix the targets and add these back
-                    //.Which.Should()
-                    //.MatchEquivalentOf($"{projectMetadata}{leafProject.FullPath}");
+                        .ContainSingle(message => message.StartsWith(projectMetadata))
+                        .Which.Should()
+                        .MatchEquivalentOf($"{projectMetadata}{leafProject.FullPath}");
+
+                    // TODO: Ensure that the metadata on <ProjectReference> is set correctly
 
                     result.Should().BeTrue();
                 }
