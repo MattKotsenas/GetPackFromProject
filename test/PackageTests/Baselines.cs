@@ -9,6 +9,7 @@ public class Baselines
     [Fact]
     public Task Match()
     {
+        // Ensure we only compare the latest package
         FileInfo package = GetWorkingDirectory().GetFiles("GetPackFromProject.*.nupkg").OrderByDescending(f => f.LastWriteTimeUtc).First();
 
         return VerifyFile(package, VerifySettings);

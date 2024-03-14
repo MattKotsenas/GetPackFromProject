@@ -5,6 +5,7 @@
     <IsPackable>false</IsPackable>
     <RootNamespace>GetPackFromProject.MSBuild.ValidateGeneratePackageOnBuild</RootNamespace>
     <AssemblyName>$(RootNamespace)</AssemblyName>
+    <GenerateDependencyFile>true</GenerateDependencyFile>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
