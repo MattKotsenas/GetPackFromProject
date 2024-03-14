@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
     <RootNamespace>GetPackFromProject.IntegrationTests</RootNamespace>
     <AssemblyName>$(RootNamespace)</AssemblyName>
     <IsPackable>false</IsPackable>
@@ -10,9 +10,9 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
-    <PackageReference Include="fluentassertions" Version="6.12.0" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="msbuild.projectcreation" Version="11.1.0" />
+    <PackageReference Include="MSBuild.ProjectCreation" Version="12.0.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>

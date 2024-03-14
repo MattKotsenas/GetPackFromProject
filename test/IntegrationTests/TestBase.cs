@@ -1,13 +1,12 @@
-﻿using Microsoft.Build.Utilities.ProjectCreation;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace GetPackFromProject.IntegrationTests;
 
-public abstract class TestBase : MSBuildTestBase, IDisposable
+public abstract class TestBase : IDisposable
 {
     private bool _disposed;
 
-    protected DirectoryInfo Temp { get; init; }
+    protected DirectoryInfo Temp { get; private set; }
     protected DirectoryInfo WorkingDirectory { get; } = GetWorkingDirectory();
 
     protected TestBase()
@@ -75,8 +74,21 @@ public abstract class TestBase : MSBuildTestBase, IDisposable
     private static DirectoryInfo GetWorkingDirectory()
     {
         Assembly assembly = Assembly.GetExecutingAssembly();
-        var dirInfo = new FileInfo(assembly.Location).Directory ?? throw new Exception($"Unable to get directory from assembly location '{assembly.Location}'.");
+        string location = GetAssemblyLocation(assembly);
+
+        var dirInfo = new FileInfo(location).Directory ?? throw new Exception($"Unable to get directory from assembly location '{assembly.Location}'.");
 
         return dirInfo;
+    }
+
+    private static string GetAssemblyLocation(Assembly assembly)
+    {
+#if NETFRAMEWORK
+        Uri codebase = new(assembly.CodeBase);
+        return Uri.UnescapeDataString(codebase.AbsolutePath);
+#elif NETCOREAPP
+        return assembly.Location;
+#endif
+        throw new InvalidOperationException("Unsupported framework.");
     }
 }
