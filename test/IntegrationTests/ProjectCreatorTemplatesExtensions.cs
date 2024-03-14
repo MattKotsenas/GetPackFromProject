@@ -19,9 +19,10 @@ internal static class ProjectCreatorTemplatesExtensions
 
     public static ProjectCreator ProjectThatImportsTargets(this ProjectCreatorTemplates templates, DirectoryInfo buildBasePath, Action<ProjectCreator> customAction, string targetFramework = "net8.0")
     {
+        // Use the transitive files because they import the base files. This way we can test the entire chain
         return templates.SdkCsproj(targetFramework: targetFramework)
-            .Import(Path.Combine(buildBasePath.FullName, "build", "GetPackFromProject.props"))
+            .Import(Path.Combine(buildBasePath.FullName, "buildTransitive", "GetPackFromProject.props"))
             .CustomAction(customAction)
-            .Import(Path.Combine(buildBasePath.FullName, "build", "GetPackFromProject.targets"));
+            .Import(Path.Combine(buildBasePath.FullName, "buildTransitive", "GetPackFromProject.targets"));
     }
 }

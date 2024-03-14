@@ -27,6 +27,10 @@
       <Link>build\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="$(ArtifactsPath)\bin\ValidateGeneratePackageOnBuild\$(Configuration)_net6.0\buildTransitive\**\*.*">
+      <Link>buildTransitive\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="$(ArtifactsPath)\bin\ValidateGeneratePackageOnBuild\$(Configuration)_net6.0\GetPackFromProject.MSBuild.ValidateGeneratePackageOnBuild.dll">
       <Link>tasks\netcore\%(Filename).dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
