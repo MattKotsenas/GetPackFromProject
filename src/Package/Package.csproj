@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>GetPackFromProject</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(RepoRoot)\README.md" Pack="True" PackagePath="" />
+    <None Include="lib\_._" Pack="true" PackagePath="lib/net8.0" />
+  </ItemGroup>
 
 </Project>

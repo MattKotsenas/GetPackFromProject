@@ -1,0 +1,6 @@
+﻿/
+|-- GetPackFromProject.nuspec
+|-- README.md
+|-- lib
+    |-- net8.0
+        |-- _._
