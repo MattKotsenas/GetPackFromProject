@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.Build.NoTargets">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <!--
       NuGet validates that libs in a package are exposed as dependencies, but we _explicitly_ do not want that behavior for MSBuild tasks.
@@ -14,6 +14,10 @@
   <PropertyGroup>
     <PackageId>GetPackFromProject</PackageId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectDependency Include="$(RepoRoot)\src\ValidateGeneratePackageOnBuild\ValidateGeneratePackageOnBuild.csproj" />
+  </ItemGroup>
 
   <PropertyGroup>
     <TaskBinNetCore>$(ArtifactsPath)\bin\ValidateGeneratePackageOnBuild\$(Configuration)_net6.0\</TaskBinNetCore>
@@ -30,5 +34,14 @@
     <None Visible="false" Include="$(TaskBinNetCore)\**\*.*" Exclude="$(TaskBinNetCore)\build\**\*.*;$(TaskBinNetCore)\buildTransitive\**\*.*" Pack="true" PackagePath="tasks\netcore\" />
     <None Visible="false" Include="$(TaskBinNetFx)\**\*.*" Exclude="$(TaskBinNetFx)\build\**\*.*;$(TaskBinNetFx)\buildTransitive\**\*.*" Pack="true" PackagePath="tasks\netfx\" />
   </ItemGroup>
+
+
+  <Target Name="BuildProjectDependencies" BeforeTargets="Build">
+    <!-- Replace this custom logic with https://github.com/dotnet/msbuild/issues/4795 when available -->
+    <Message Text="Building project order-only dependencies: @(ProjectDependency)" Importance="High" />
+    <MSBuild
+      Projects="@(ProjectDependency)"
+      BuildInParallel="$(BuildInParallel)" />
+  </Target>
 
 </Project>
