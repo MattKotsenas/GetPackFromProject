@@ -7,7 +7,7 @@ public abstract class TestBase : IDisposable
     private bool _disposed;
 
     protected DirectoryInfo Temp { get; private set; }
-    protected DirectoryInfo WorkingDirectory { get; } = GetWorkingDirectory();
+    protected static DirectoryInfo WorkingDirectory { get; } = GetWorkingDirectory();
 
     protected TestBase()
     {
@@ -41,7 +41,7 @@ public abstract class TestBase : IDisposable
 
     private static void TryDeleteDirectory(DirectoryInfo directory)
     {
-        IOException? lastException = null;
+        Exception? lastException = null;
 
         for (int i = 0; i < 3; i++)
         {
@@ -50,7 +50,7 @@ public abstract class TestBase : IDisposable
                 directory.Delete(recursive: true);
                 return;
             }
-            catch (IOException ex)
+            catch (Exception ex)
             {
                 lastException = ex;
 
@@ -60,7 +60,7 @@ public abstract class TestBase : IDisposable
 
         if (lastException is not null)
         {
-            throw new IOException($"Failed to delete temp directory '{directory.FullName}' after multiple retries.", lastException);
+            throw new Exception($"Failed to delete temp directory '{directory.FullName}' after multiple retries.", lastException);
         }
     }
 

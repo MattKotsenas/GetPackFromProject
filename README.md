@@ -1,6 +1,7 @@
 # GetPackFromProject
 
-An MSBuild task helper to simplify testing NuGet packages. To use, first install the package XXXX, then add the metadata
+An MSBuild task helper to simplify testing NuGet packages by automatically ensuring the latest package is built and placed in the output directory for test projects.
+To use, first install the package XXXX, then add the metadata
 `AddPackageAsOutput=true` to any `<ProjectReference>` items like this:
 
 ```xml

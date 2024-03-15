@@ -2,8 +2,10 @@
   <metadata>
     <id>GetPackFromProject</id>
     <version>********</version>
-    <authors>Package</authors>
-    <description>Package Description</description>
+    <authors>MattKotsenas</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <description>An MSBuild task helper to simplify testing NuGet packages by automatically ensuring the latest package is built and placed in the output directory for test projects.</description>
     <repository type="git" url="https://github.com/MattKotsenas/GetPackFromProject.git" commit="****************************************" />
   </metadata>
 </package>
