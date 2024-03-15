@@ -7,6 +7,7 @@
 |-- buildTransitive
 |   |-- GetPackFromProject.props
 |   |-- GetPackFromProject.targets
+|-- icon.png
 |-- tasks
     |-- netcore
     |   |-- GetPackFromProject.MSBuild.ValidateGeneratePackageOnBuild.deps.json
