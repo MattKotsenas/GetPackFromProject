@@ -1,4 +1,3 @@
-using System.IO.Compression;
 using FluentAssertions;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Utilities.ProjectCreation;
@@ -11,37 +10,7 @@ public class GivenAProjectWithAProjectReference: TestBase
 
     public GivenAProjectWithAProjectReference()
     {
-        FileInfo originalPackage = WorkingDirectory.GetFiles("GetPackFromProject.*.nupkg").OrderByDescending(f => f.LastWriteTimeUtc).First();
-        Package = WorkaroundNuspecReaderBug(originalPackage);
-    }
-
-    private FileInfo WorkaroundNuspecReaderBug(FileInfo originalPackage)
-    {
-        // Remove this method once https://github.com/jeffkl/MSBuildProjectCreator/pull/278 is fixed
-
-        string workaroundPackagePath = Path.Combine(Temp.FullName, originalPackage.Name);
-        originalPackage.CopyTo(workaroundPackagePath, overwrite: true);
-        FileInfo workaroundPackage = new(workaroundPackagePath);
-
-        using ZipArchive zipArchive = new(workaroundPackage.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None), ZipArchiveMode.Update, leaveOpen: false);
-        ZipArchiveEntry oldEntry = zipArchive.Entries.Single(e => e.Name.EndsWith(".nuspec"));
-
-        string? document;
-        using (var reader = new StreamReader(oldEntry.Open()))
-        {
-            document = reader.ReadToEnd();
-        }
-        oldEntry.Delete();
-
-        document = document.Replace("http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd", "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd");
-
-        ZipArchiveEntry newEntry = zipArchive.CreateEntry(oldEntry.FullName);
-        using (var writer = new StreamWriter(newEntry.Open()))
-        {
-            writer.Write(document);
-        }
-
-        return workaroundPackage;
+        Package = WorkingDirectory.GetFiles("GetPackFromProject.*.nupkg").OrderByDescending(f => f.LastWriteTimeUtc).First();
     }
 
     [Fact]
