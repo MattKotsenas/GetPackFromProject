@@ -1,6 +1,6 @@
 <Project>
 
-  <Target Name="BuildProjectDependencies" BeforeTargets="BeforeBuild" Condition="'@(ProjectDependency)' != ''">
+  <Target Name="BuildProjectDependencies" BeforeTargets="PrepareForBuild" Condition="'@(ProjectDependency)' != ''">
     <!-- Replace this custom logic with https://github.com/dotnet/msbuild/issues/4795 when available -->
     <Message Text="Building project order-only dependencies: @(ProjectDependency)" Importance="normal" />
     <MSBuild
