@@ -1,5 +1,6 @@
 <Project>
 
   <Import Project="build/targets/TestProjects.targets" />
+  <Import Project="build/targets/BuildOrder.targets" />
 
 </Project>

@@ -44,13 +44,4 @@
     <None Visible="false" Include="$(TaskBinNetFx)\**\*.*" Exclude="$(TaskBinNetFx)\build\**\*.*;$(TaskBinNetFx)\buildTransitive\**\*.*" Pack="true" PackagePath="tasks\netfx\" />
   </ItemGroup>
 
-
-  <Target Name="BuildProjectDependencies" BeforeTargets="Build">
-    <!-- Replace this custom logic with https://github.com/dotnet/msbuild/issues/4795 when available -->
-    <Message Text="Building project order-only dependencies: @(ProjectDependency)" Importance="normal" />
-    <MSBuild
-      Projects="@(ProjectDependency)"
-      BuildInParallel="$(BuildInParallel)" />
-  </Target>
-
 </Project>
