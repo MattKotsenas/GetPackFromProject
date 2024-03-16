@@ -24,26 +24,26 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectDependency Include="$(RepoRoot)\src\ValidateGeneratePackageOnBuild\ValidateGeneratePackageOnBuild.csproj" />
+    <ProjectDependency Include="$(RepoRoot)/src/ValidateGeneratePackageOnBuild/ValidateGeneratePackageOnBuild.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
-    <TaskBinNetCore>$(ArtifactsPath)\bin\ValidateGeneratePackageOnBuild\$(Configuration)_net6.0\</TaskBinNetCore>
-    <TaskBinNetFx>$(ArtifactsPath)\bin\ValidateGeneratePackageOnBuild\$(Configuration)_net462</TaskBinNetFx>
+    <TaskBinNetCore>$(ArtifactsPath)/bin/ValidateGeneratePackageOnBuild/$(Configuration)_net6.0</TaskBinNetCore>
+    <TaskBinNetFx>$(ArtifactsPath)/bin/ValidateGeneratePackageOnBuild/$(Configuration)_net462</TaskBinNetFx>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(RepoRoot)\README.md" Pack="true" PackagePath="" />
-    <None Include="$(RepoRoot)\icon.png" Pack="true" PackagePath="" />
+    <None Include="$(RepoRoot)/README.md" Pack="true" PackagePath="" />
+    <None Include="$(RepoRoot)/icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <Target Name="AddBuiltContent" BeforeTargets="AssignTargetPaths" DependsOnTargets="BuildProjectDependencies">
     <!-- This content is dynamically generated, so we need to defer evaluation until after ProjectDependencies are built -->
     <ItemGroup>
-      <None Visible="false" Include="$(TaskBinNetCore)\build\**\*.*" Pack="true" PackagePath="build\" />
-      <None Visible="false" Include="$(TaskBinNetCore)\buildTransitive\**\*.*" Pack="true" PackagePath="buildTransitive\" />
-      <None Visible="false" Include="$(TaskBinNetCore)\**\*.*" Exclude="$(TaskBinNetCore)\build\**\*.*;$(TaskBinNetCore)\buildTransitive\**\*.*" Pack="true" PackagePath="tasks\netcore\" />
-      <None Visible="false" Include="$(TaskBinNetFx)\**\*.*" Exclude="$(TaskBinNetFx)\build\**\*.*;$(TaskBinNetFx)\buildTransitive\**\*.*" Pack="true" PackagePath="tasks\netfx\" />
+      <None Visible="false" Include="$(TaskBinNetCore)/build/**/*.*" Pack="true" PackagePath="build/" />
+      <None Visible="false" Include="$(TaskBinNetCore)/buildTransitive/**/*.*" Pack="true" PackagePath="buildTransitive/" />
+      <None Visible="false" Include="$(TaskBinNetCore)/**/*.*" Exclude="$(TaskBinNetCore)/build/**/*.*;$(TaskBinNetCore)/buildTransitive/**/*.*" Pack="true" PackagePath="tasks/netcore/" />
+      <None Visible="false" Include="$(TaskBinNetFx)/**/*.*" Exclude="$(TaskBinNetFx)/build/**/*.*;$(TaskBinNetFx)/buildTransitive/**/*.*" Pack="true" PackagePath="tasks/netfx/" />
     </ItemGroup>
   </Target>
 

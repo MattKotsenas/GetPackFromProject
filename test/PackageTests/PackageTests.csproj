@@ -28,13 +28,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectDependency Include="$(RepoRoot)\src\Package\Package.csproj" />
+    <ProjectDependency Include="$(RepoRoot)/src/Package/Package.csproj" />
   </ItemGroup>
 
   <Target Name="AddBuiltContent" BeforeTargets="AssignTargetPaths" DependsOnTargets="BuildProjectDependencies">
     <!-- This content is dynamically generated, so we need to defer evaluation until after ProjectDependencies are built -->
     <ItemGroup>
-      <Content Include="$(ArtifactsPath)\package\$(Configuration)\GetPackFromProject*.nupkg" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(ArtifactsPath)/package/$(Configuration)/GetPackFromProject*.nupkg" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 
