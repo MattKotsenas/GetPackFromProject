@@ -1,13 +1,13 @@
 <Project>
 
-  <Target Name="AddProjectPackagesAsOutput" BeforeTargets="Build">
+  <Target Name="AddProjectPackagesAsOutput" BeforeTargets="AssignTargetPaths">
     <ItemGroup>
       <_ProjectsToCopy Include="%(ProjectReference.Identity)" Condition="'%(ProjectReference.AddPackageAsOutput)'  == 'true'" />
     </ItemGroup>
 
     <Message Text="Projects to copy @(_ProjectsToCopy)" Importance="Low" />
 
-    <ValidateGeneratePackageOnBuild Condition="'%(_ProjectsToCopy.Identity)' != ''" ProjectFile="%(_ProjectsToCopy.Identity)" AttachDebugger="$(ValidateGeneratePackageOnBuildShouldDebug)" />
+    <ValidateGeneratePackageOnBuild Condition="'%(_ProjectsToCopy.Identity)' != ''" ProjectFile="%(_ProjectsToCopy.Identity)" AttachDebugger="$(GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug)" />
 
     <!-- TODO: Ideally we could rely on a public API and not a private target -->
     <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="_GetOutputItemsFromPack">
@@ -23,7 +23,7 @@
       </ProjectReference>
 
       <!-- Add the .nupkg(s) as Content so users can copy them to output / embed them, etc. -->
-      <Content Include="%(_DependentPackageOutputs.Identity)" Condition="'$([System.IO.Path]::GetExtension(%(_DependentPackageOutputs.Identity)))' == '.nupkg'" CopyToOutputDirectory="PreserveNewest">
+      <Content Include="%(_DependentPackageOutputs.Identity)" Condition="'$([System.IO.Path]::GetExtension(%(_DependentPackageOutputs.Identity)))' == '.nupkg'" CopyToOutputDirectory="$(GetPackFromProject_CopyToOutputDirectory)">
         <IsPackageFromProjectReference>true</IsPackageFromProjectReference>
       </Content>
     </ItemGroup>

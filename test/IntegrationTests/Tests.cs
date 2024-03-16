@@ -23,6 +23,7 @@ public class GivenAProjectWithAProjectReference: TestBase
 
             ProjectCreator.Templates
                 .SdkCsproj(targetFramework: "net8.0")
+                .Property("GetPackFromProject_CopyToOutputDirectory", "Never")
                 .ItemPackageReference(package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
@@ -31,10 +32,10 @@ public class GivenAProjectWithAProjectReference: TestBase
                 .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
                 .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
+            buildOutput.WarningEvents.Should().HaveCount(1).And.Subject.Single().Code.Should().Be("GPP001");
+
             buildOutput.Errors.Should().BeEmpty();
             result.Should().BeTrue();
-
-            buildOutput.WarningEvents.Should().HaveCount(1).And.Subject.Single().Code.Should().Be("GPP001");
         }
     }
 
@@ -143,6 +144,11 @@ public class GivenAProjectWithAProjectReference: TestBase
                 .MatchEquivalentOf($"{projectMetadata}{Temp.FullName}\\Leaf\\bin\\Debug\\Leaf.1.0.0-deadbeef.nupkg;{Temp.FullName}\\Leaf\\obj\\Debug\\Leaf.1.0.0-deadbeef.nuspec");
 
             result.Should().BeTrue();
+
+            string binDir = Path.Combine(Temp.FullName, "Sample", "bin", "Debug");
+            Directory.GetFiles(binDir, "Leaf*.nupkg", SearchOption.AllDirectories)
+                .Should()
+                .HaveCount(1, "there should be a .nupkg in the output directory");
         }
     }
 }

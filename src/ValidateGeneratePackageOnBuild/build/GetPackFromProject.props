@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
-    <ValidateGeneratePackageOnBuildShouldDebug Condition="'$(ValidateGeneratePackageOnBuildShouldDebug)' == ''">false</ValidateGeneratePackageOnBuildShouldDebug>
+    <GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug Condition="'$(ValidateGeneratePackageOnBuildShouldDebug)' == ''">false</GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug>
+    <GetPackFromProject_CopyToOutputDirectory>PreserveNewest</GetPackFromProject_CopyToOutputDirectory>
 
     <!-- These paths need to be coordinated with the PackagePath defined in the project. -->
     <_TaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">netfx</_TaskAssembly>
