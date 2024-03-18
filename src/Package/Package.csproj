@@ -28,8 +28,8 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <TaskBinNetCore>$(ArtifactsPath)/bin/ValidateGeneratePackageOnBuild/$(Configuration)_net6.0</TaskBinNetCore>
-    <TaskBinNetFx>$(ArtifactsPath)/bin/ValidateGeneratePackageOnBuild/$(Configuration)_net462</TaskBinNetFx>
+    <TaskBinNetCore>$(ArtifactsPath)/bin/ValidateGeneratePackageOnBuild/$(Configuration.ToLower())_net6.0</TaskBinNetCore>
+    <TaskBinNetFx>$(ArtifactsPath)/bin/ValidateGeneratePackageOnBuild/$(Configuration.ToLower())_net462</TaskBinNetFx>
   </PropertyGroup>
 
   <ItemGroup>
