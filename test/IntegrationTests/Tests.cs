@@ -92,6 +92,7 @@ public class GivenAProjectWithAProjectReference: TestBase
         string contentHasMetadata = "Content has metadata:";
         string projectsWithMetadata = "ProjectReferences with metadata:";
         string projectMetadata = "ProjectReferencesMetadata:";
+        char sep = Path.DirectorySeparatorChar;
 
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
@@ -131,7 +132,7 @@ public class GivenAProjectWithAProjectReference: TestBase
                 .Should()
                 .ContainSingle(message => message.StartsWith(contentHasMetadata))
                 .Which.Should()
-                .MatchEquivalentOf($"{contentHasMetadata}{Temp.FullName}\\Leaf\\bin\\Debug\\Leaf.1.0.0-deadbeef.nupkg");
+                .MatchEquivalentOf($"{contentHasMetadata}{Temp.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg");
             buildOutput.Messages
                 .Should()
                 .ContainSingle(message => message.StartsWith(projectsWithMetadata))
@@ -141,7 +142,7 @@ public class GivenAProjectWithAProjectReference: TestBase
                 .Should()
                 .ContainSingle(message => message.StartsWith(projectMetadata))
                 .Which.Should()
-                .MatchEquivalentOf($"{projectMetadata}{Temp.FullName}\\Leaf\\bin\\Debug\\Leaf.1.0.0-deadbeef.nupkg;{Temp.FullName}\\Leaf\\obj\\Debug\\Leaf.1.0.0-deadbeef.nuspec");
+                .MatchEquivalentOf($"{projectMetadata}{Temp.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg;{Temp.FullName}{sep}Leaf{sep}obj{sep}Debug{sep}Leaf.1.0.0-deadbeef.nuspec");
 
             result.Should().BeTrue();
 
