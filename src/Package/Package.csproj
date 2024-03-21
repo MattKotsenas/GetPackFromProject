@@ -25,7 +25,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectDependency Include="$(RepoRoot)/src/ValidateGeneratePackageOnBuild/ValidateGeneratePackageOnBuild.csproj" />
+    <ProjectReference Include="$(RepoRoot)/src/ValidateGeneratePackageOnBuild/ValidateGeneratePackageOnBuild.csproj">
+      <SetTargetFramework Condition="'$(BuildingInsideVisualStudio)' == 'true'">TargetFramework=net6.0</SetTargetFramework>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <Private>false</Private>
+      <ExcludeAssets>all</ExcludeAssets>
+    </ProjectReference>
   </ItemGroup>
 
   <PropertyGroup>
@@ -38,7 +45,7 @@
     <None Include="$(RepoRoot)/icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
-  <Target Name="AddBuiltContent" BeforeTargets="AssignTargetPaths" DependsOnTargets="BuildProjectDependencies">
+  <Target Name="AddBuiltContent" BeforeTargets="AssignTargetPaths">
     <!-- This content is dynamically generated, so we need to defer evaluation until after ProjectDependencies are built -->
     <ItemGroup>
       <None Visible="false" Include="$(TaskBinNetCore)/build/**/*.*" Pack="true" PackagePath="build/" />
