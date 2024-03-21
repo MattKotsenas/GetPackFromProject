@@ -33,6 +33,9 @@
 
   <Target Name="AddBuiltContent" BeforeTargets="AssignTargetPaths" DependsOnTargets="BuildProjectDependencies">
     <!-- This content is dynamically generated, so we need to defer evaluation until after ProjectDependencies are built -->
+
+    <Message Text="$(MSBuildThisFileName): Packages: '$([System.String]::Join(', ', $([System.IO.Directory]::GetFiles('$(ArtifactsPath)/package/$(Configuration.ToLower())', '*.*'))))'" Importance="low" />
+
     <ItemGroup>
       <Content Include="$(ArtifactsPath)/package/$(Configuration.ToLower())/GetPackFromProject*.nupkg" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>

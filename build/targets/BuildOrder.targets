@@ -6,7 +6,7 @@
     <MSBuild
       Projects="@(ProjectDependency)"
       RemoveProperties="TargetFramework;TargetFrameworks"
-      BuildInParallel="$(BuildInParallel)"
+      BuildInParallel="false"
       Targets="Restore;Build" />
   </Target>
 
