@@ -25,7 +25,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectDependency Include="$(RepoRoot)/src/ValidateGeneratePackageOnBuild/ValidateGeneratePackageOnBuild.csproj" />
+    <ProjectReference Include="$(RepoRoot)/src/ValidateGeneratePackageOnBuild/ValidateGeneratePackageOnBuild.csproj">
+      <SetTargetFramework Condition="'$(BuildingInsideVisualStudio)' == 'true'">TargetFramework=net6.0</SetTargetFramework>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <Private>false</Private>
+      <ExcludeAssets>all</ExcludeAssets>
+    </ProjectReference>
   </ItemGroup>
 
   <PropertyGroup>

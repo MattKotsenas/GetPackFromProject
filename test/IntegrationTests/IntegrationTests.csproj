@@ -24,7 +24,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectDependency Include="$(RepoRoot)/src/Package/Package.csproj" />
+    <ProjectReference Include="$(RepoRoot)/src/Package/Package.csproj">
+      <GlobalPropertiesToRemove>TargetFramework;TargetFrameworks</GlobalPropertiesToRemove>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <Private>false</Private>
+      <ExcludeAssets>all</ExcludeAssets>
+    </ProjectReference>
   </ItemGroup>
 
   <Target Name="AddBuiltContent" BeforeTargets="AssignTargetPaths" DependsOnTargets="BuildProjectDependencies">
