@@ -2,14 +2,18 @@ using FluentAssertions;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Utilities.ProjectCreation;
 
+using Xunit.Abstractions;
+
 namespace GetPackFromProject.IntegrationTests;
 
 public class GivenAProjectWithAProjectReference: TestBase
 {
     protected FileInfo Package { get; private set; }
 
-    public GivenAProjectWithAProjectReference()
+    public GivenAProjectWithAProjectReference(ITestOutputHelper logger)
     {
+        logger.WriteLine($"Enumerating files:{string.Join("\n\t", WorkingDirectory.GetFiles().Select(f => f.FullName))}");
+
         Package = WorkingDirectory.GetFiles("GetPackFromProject.*.nupkg").OrderByDescending(f => f.LastWriteTimeUtc).First();
     }
 
