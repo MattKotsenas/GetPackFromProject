@@ -6,7 +6,7 @@
 [![Nuget](https://img.shields.io/nuget/v/GetPackFromProject)](https://nuget.org/packages/GetPackFromProject)
 [![Downloads](https://img.shields.io/nuget/dt/GetPackFromProject)](https://nuget.org/packages/GetPackFromProject)
 
-An MSBuild task helper to simplify testing NuGet packages by automatically ensuring the latest package is built and
+An MSBuild task / helper to simplify testing NuGet packages by automatically ensuring the latest package is built and
 placed in the output directory for test projects. To use, first install the package, then add the metadata
 `AddPackageAsOutput=true` to any `<ProjectReference>` items like this:
 
@@ -18,7 +18,7 @@ placed in the output directory for test projects. To use, first install the pack
 
 Adding that metadata will do a few things:
 
-1. Ensuring the package is generated on every build
+1. Ensure the package is generated on every build
 
 To avoid working with stale packages, the build will validate that any projects with this metadata have the `GeneratePackageOnBuild`
 property set (by default, a project only creates a package when you run the Pack target).
