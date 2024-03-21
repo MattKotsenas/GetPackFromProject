@@ -45,7 +45,7 @@
     <None Include="$(RepoRoot)/icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
-  <Target Name="AddBuiltContent" BeforeTargets="AssignTargetPaths" DependsOnTargets="BuildProjectDependencies">
+  <Target Name="AddBuiltContent" BeforeTargets="AssignTargetPaths">
     <!-- This content is dynamically generated, so we need to defer evaluation until after ProjectDependencies are built -->
     <ItemGroup>
       <None Visible="false" Include="$(TaskBinNetCore)/build/**/*.*" Pack="true" PackagePath="build/" />
