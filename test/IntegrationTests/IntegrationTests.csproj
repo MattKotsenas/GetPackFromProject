@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Limit .NET Framework tests to Windows build / test machines -->
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net472</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworks);net8.0</TargetFrameworks>
+    <RootNamespace>GetPackFromProject.IntegrationTests</RootNamespace>
+    <AssemblyName>$(RootNamespace)</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="MSBuild.ProjectCreation" Version="12.0.1" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectDependency Include="$(RepoRoot)/src/Package/Package.csproj" />
+  </ItemGroup>
+
+  <Target Name="AddBuiltContent" BeforeTargets="AssignTargetPaths" DependsOnTargets="BuildProjectDependencies">
+    <!-- This content is dynamically generated, so we need to defer evaluation until after ProjectDependencies are built -->
+    <ItemGroup>
+      <Content Include="$(ArtifactsPath)/package/$(Configuration.ToLower())/GetPackFromProject*.nupkg" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+</Project>

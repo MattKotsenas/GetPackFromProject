@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
-    <ArtifactsPath>$(RepoRoot)/artifacts/</ArtifactsPath>
+    <ArtifactsPath>$(RepoRoot)/artifacts</ArtifactsPath>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 

@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug Condition="'$(ValidateGeneratePackageOnBuildShouldDebug)' == ''">false</GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug>
+    <GetPackFromProject_CopyToOutputDirectory>PreserveNewest</GetPackFromProject_CopyToOutputDirectory>
+
+    <!-- These paths need to be coordinated with the PackagePath defined in the project. -->
+    <_TaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">netfx</_TaskAssembly>
+    <_TaskAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">netcore</_TaskAssembly>
+    <_TaskAssembly>$(MSBuildThisFileDirectory)/../tasks/$(_TaskAssembly)/GetPackFromProject.MSBuild.ValidateGeneratePackageOnBuild.dll</_TaskAssembly>
+  </PropertyGroup>
+
+  <!-- TODO: Should revisit the TaskFactory if it impacts performance -->
+  <UsingTask TaskName="ValidateGeneratePackageOnBuild" AssemblyFile="$(_TaskAssembly)" TaskFactory="TaskHostFactory" />
+</Project>
