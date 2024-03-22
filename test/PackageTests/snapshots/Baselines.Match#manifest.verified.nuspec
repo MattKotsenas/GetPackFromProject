@@ -1,4 +1,4 @@
-﻿<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+﻿<package>
   <metadata>
     <id>GetPackFromProject</id>
     <version>********</version>
