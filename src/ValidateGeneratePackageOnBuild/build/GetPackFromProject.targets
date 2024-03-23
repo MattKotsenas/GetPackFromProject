@@ -14,6 +14,15 @@
       <Output TaskParameter="TargetOutputs" ItemName="_DependentPackageOutputs" />
     </MSBuild>
 
+    <!--
+      Pack is an outer-build target. In crosstargeting / multi-targeting scenarios
+      we need to call Pack ourselves. In single build scenarios, Pack will be called
+      via `GeneratePackageOnBuild`.
+    -->
+    <WaitForLockFile LockFile="$(IntermediateOutputPath)/foo.lock" />
+    <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="Pack" />
+    <Delete Files="$(IntermediateOutputPath)/foo.lock" />
+
     <Message Text="Dependent TargetOutputs is '%(_DependentPackageOutputs.Identity)'" Importance="Low" />
 
     <ItemGroup Condition="'@(_ProjectsToCopy)' != ''">

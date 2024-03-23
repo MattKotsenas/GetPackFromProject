@@ -1,8 +1,16 @@
+using System.Globalization;
+using System.Linq.Expressions;
+using System;
+
 using FluentAssertions;
+using FluentAssertions.Execution;
+
 using Microsoft.Build.Execution;
 using Microsoft.Build.Utilities.ProjectCreation;
 
 using Xunit.Abstractions;
+using FluentAssertions.Collections;
+using FluentAssertions.Primitives;
 
 namespace GetPackFromProject.IntegrationTests;
 
@@ -17,16 +25,18 @@ public class GivenAProjectWithAProjectReference: TestBase
         Package = WorkingDirectory.GetFiles("GetPackFromProject.*.nupkg").OrderByDescending(f => f.LastWriteTimeUtc).First();
     }
 
-    [Fact]
-    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_ItShouldWarn()
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net7.0", "net8.0")]
+    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_ItShouldWarn(params string[] targetFrameworks)
     {
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, targetFrameworks).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator.Templates
-                .SdkCsproj(targetFramework: "net8.0")
+                .SdkCsproj(targetFrameworks)
                 .Property("GetPackFromProject_CopyToOutputDirectory", "Never")
                 .ItemPackageReference(package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
@@ -36,23 +46,27 @@ public class GivenAProjectWithAProjectReference: TestBase
                 .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
                 .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
-            buildOutput.WarningEvents.Should().HaveCount(1).And.Subject.Single().Code.Should().Be("GPP001");
+            buildOutput.WarningEvents.Should()
+                .HaveCount(targetFrameworks.Length)
+                .And.AllSatisfy(warning => warning.Code.Should().Be("GPP001"));
 
             buildOutput.Errors.Should().BeEmpty();
             result.Should().BeTrue();
         }
     }
 
-    [Fact]
-    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_WhenWarningsAreErrorsItShouldError()
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net7.0", "net8.0")]
+    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_WhenWarningsAreErrorsItShouldError(params string[] targetFrameworks)
     {
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, targetFrameworks).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator.Templates
-                .SdkCsproj(targetFramework: "net8.0")
+                .SdkCsproj(targetFrameworks)
                 .ItemPackageReference(package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
@@ -62,22 +76,26 @@ public class GivenAProjectWithAProjectReference: TestBase
                 .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
                 .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
-            buildOutput.ErrorEvents.Should().HaveCount(1).And.Subject.Single().Code.Should().Be("GPP001");
+            buildOutput.ErrorEvents.Should()
+                .HaveCount(targetFrameworks.Length)
+                .And.AllSatisfy(error => error.Code.Should().Be("GPP001"));
 
             result.Should().BeFalse();
         }
     }
 
-    [Fact]
-    public void WhenThePackageReferencePropertyIsNotUsed_ItShouldPass()
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net7.0", "net8.0")]
+    public void WhenThePackageReferencePropertyIsNotUsed_ItShouldPass(params string[] targetFrameworks)
     {
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, targetFrameworks).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator.Templates
-                .SdkCsproj(targetFramework: "net8.0")
+                .SdkCsproj(targetFrameworks)
                 .ItemPackageReference(package)
                 .ItemProjectReference(leafProject)
                 .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
@@ -90,8 +108,10 @@ public class GivenAProjectWithAProjectReference: TestBase
         }
     }
 
-    [Fact]
-    public void WhenTheConfigurationIsCorrect_ShouldPassWhenLeafProjectHasProperty()
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net7.0", "net8.0")]
+    public void WhenTheConfigurationIsCorrect_ShouldPassWhenLeafProjectHasProperty(params string[] targetFrameworks)
     {
         string contentHasMetadata = "Content has metadata:";
         string projectsWithMetadata = "ProjectReferences with metadata:";
@@ -101,16 +121,16 @@ public class GivenAProjectWithAProjectReference: TestBase
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: true).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: true, targetFrameworks).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator.Templates
-                .SdkCsproj(targetFramework: "net8.0")
+                .SdkCsproj(targetFrameworks)
                 .ItemPackageReference(package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }
                 })
-                .Target("PrintContentItemsTestValidation", afterTargets: "Build")
+                .Target("PrintContentItemsTestValidation", afterTargets: "Build", condition: "'$(IsInnerBuild)' == 'true' OR '$(TargetFrameworks)' == ''")
                     .Task(name: "Message", parameters: new Dictionary<string, string?>
                     {
                         { "Text", $"{contentHasMetadata}@(Content->WithMetadataValue('IsPackageFromProjectReference', 'true'))" },
@@ -133,27 +153,84 @@ public class GivenAProjectWithAProjectReference: TestBase
             buildOutput.WarningEvents.Should().BeEmpty();
 
             buildOutput.Messages
-                .Should()
-                .ContainSingle(message => message.StartsWith(contentHasMetadata))
-                .Which.Should()
-                .MatchEquivalentOf($"{contentHasMetadata}{Temp.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg");
+                .Where(message => message == $"{contentHasMetadata}{Temp.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg")
+                .Should().HaveCount(targetFrameworks.Length);
             buildOutput.Messages
-                .Should()
-                .ContainSingle(message => message.StartsWith(projectsWithMetadata))
-                .Which.Should()
-                .MatchEquivalentOf($"{projectsWithMetadata}{leafProject.FullPath}");
+                .Where(message => message == $"{projectsWithMetadata}{leafProject.FullPath}")
+                .Should().HaveCount(targetFrameworks.Length);
             buildOutput.Messages
+                .Where(message => message == $"{projectMetadata}{Temp.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg;{Temp.FullName}{sep}Leaf{sep}obj{sep}Debug{sep}Leaf.1.0.0-deadbeef.nuspec")
                 .Should()
-                .ContainSingle(message => message.StartsWith(projectMetadata))
-                .Which.Should()
-                .MatchEquivalentOf($"{projectMetadata}{Temp.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg;{Temp.FullName}{sep}Leaf{sep}obj{sep}Debug{sep}Leaf.1.0.0-deadbeef.nuspec");
+                .HaveCount(targetFrameworks.Length);
 
             result.Should().BeTrue();
 
             string binDir = Path.Combine(Temp.FullName, "Sample", "bin", "Debug");
             Directory.GetFiles(binDir, "Leaf*.nupkg", SearchOption.AllDirectories)
                 .Should()
-                .HaveCount(1, "there should be a .nupkg in the output directory");
+                .HaveCount(targetFrameworks.Length, "there should be a .nupkg per output directory");
         }
     }
 }
+
+
+//internal class CollectionContainsExtensionsAssertions<TCollection, T, TAssertions> : ReferenceTypeAssertions<TCollection, TAssertions>
+//    where TCollection : IEnumerable<T>
+//    where TAssertions : CollectionContainsExtensionsAssertions<TCollection, T, TAssertions>
+//{
+//    public CollectionContainsExtensionsAssertions(TCollection actualValue)
+//        : base(actualValue)
+//    {
+//    }
+
+//    protected override string Identifier => "collection";
+
+//    // TODO: Fix xmldocs
+
+//    /// <summary>
+//    /// Expects the current collection to contain only a single item matching the specified <paramref name="predicate"/>.
+//    /// </summary>
+//    /// <param name="predicate">The predicate that will be used to find the matching items.</param>
+//    /// <param name="because">
+//    /// A formatted phrase as is supported by <see cref="string.Format(string,object[])" /> explaining why the assertion
+//    /// is needed. If the phrase does not start with the word <i>because</i>, it is prepended automatically.
+//    /// </param>
+//    /// <param name="becauseArgs">
+//    /// Zero or more objects to format using the placeholders in <paramref name="because" />.
+//    /// </param>
+//    /// <exception cref="ArgumentNullException"><paramref name="predicate"/> is <see langword="null"/>.</exception>
+//    public AndWhichConstraint<TAssertions, T> Contain(Expression<Func<T, bool>> predicate, OccurrenceConstraint occurrence,
+//        string because = "", params object[] becauseArgs)
+//    {
+//        if (predicate is null) { throw new ArgumentNullException(nameof(predicate)); }
+
+//        const string expectationPrefix =
+//            "Expected {context:collection} to contain a single item matching {0}{reason}, ";
+
+//        bool success = Execute.Assertion
+//            .BecauseOf(because, becauseArgs)
+//            .ForCondition(Subject is not null)
+//            .FailWith(expectationPrefix + "but found <null>.", predicate);
+
+//        T[] matches = Array.Empty<T>();
+
+//        if (success)
+//        {
+//            ICollection<T> actualItems = (Subject is not null) ? Subject.ToList() : [];//.ConvertOrCastToCollection();
+
+//            Execute.Assertion
+//                .ForCondition(actualItems.Count > 0)
+//                .BecauseOf(because, becauseArgs)
+//                .FailWith(expectationPrefix + "but the collection is empty.", predicate);
+
+//            matches = actualItems.Where(predicate.Compile()).ToArray();
+//            int count = matches.Length;
+
+//            Execute.Assertion
+//                .ForConstraint(occurrence, count)
+//                .FailWith(expectationPrefix + "but " + count.ToString(CultureInfo.InvariantCulture) + " such items were found.");
+//        }
+
+//        return new AndWhichConstraint<TAssertions, T>((TAssertions)this, matches);
+//    }
+//}

@@ -11,4 +11,5 @@
 
   <!-- TODO: Should revisit the TaskFactory if it impacts performance -->
   <UsingTask TaskName="ValidateGeneratePackageOnBuild" AssemblyFile="$(_TaskAssembly)" TaskFactory="TaskHostFactory" />
+  <UsingTask TaskName="WaitForLockFile" AssemblyFile="$(_TaskAssembly)" TaskFactory="TaskHostFactory" />
 </Project>

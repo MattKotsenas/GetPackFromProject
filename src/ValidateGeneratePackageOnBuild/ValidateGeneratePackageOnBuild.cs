@@ -1,6 +1,7 @@
 ﻿using Microsoft.Build.Framework;
 using Microsoft.Build.Evaluation;
 using System.Diagnostics;
+using Microsoft.Build.Utilities;
 
 namespace GetPackFromProject.MSBuild.ValidateGeneratePackageOnBuild;
 
