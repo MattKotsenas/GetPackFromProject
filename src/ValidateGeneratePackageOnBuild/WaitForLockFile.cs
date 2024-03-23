@@ -13,27 +13,44 @@ public class WaitForLockFile : Microsoft.Build.Utilities.Task
 
     public override bool Execute()
     {
-        // TODO: Give up eventually
-
         if (LockFile is null) { throw new ArgumentNullException(nameof(LockFile)); }
 
         TimeSpan delay = TimeSpan.FromSeconds(SleepSeconds);
         string uniqueMarker = Guid.NewGuid().ToString();
+        int retries = 0;
 
-        loop:
-        TryWriteLock(LockFile, uniqueMarker);
-        if (IsMyLock(LockFile, uniqueMarker))
+        while (retries < RetryCount)
         {
-            return true;
+            TryWriteLock(LockFile, uniqueMarker);
+            if (IsMyLock(LockFile, uniqueMarker))
+            {
+                return true;
+            }
+
+            Log.LogMessage(
+                MessageImportance.Normal,
+                $"Waiting for lock file '{LockFile}' to be deleted. Sleeping for '{delay}' (retry {retries} of {RetryCount})...");
+
+            Thread.Sleep(delay);
+            retries += 1;
         }
 
-        Log.LogMessage(
-            MessageImportance.Normal,
-            $"Waiting for lock file '{LockFile}' to be deleted. Sleeping for '{delay}'...");
+        LogDiagnostic("GPP002", null!, $"Unable to acquire lock file '{LockFile}' after '{RetryCount}' tries.");
+        return false;
+    }
 
-        Thread.Sleep(delay);
-
-        goto loop;
+    private void LogDiagnostic(string diagnosicCode, string file, string message)
+    {
+        Log.LogError(
+            subcategory: null,
+            errorCode: diagnosicCode,
+            helpKeyword: null,
+            file: file,
+            lineNumber: 0,
+            columnNumber: 0,
+            endLineNumber: 0,
+            endColumnNumber: 0,
+            message: message);
     }
 
     private static bool IsMyLock(string path, string uniqueMarker)
