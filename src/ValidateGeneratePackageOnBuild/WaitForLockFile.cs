@@ -4,30 +4,36 @@ namespace GetPackFromProject.MSBuild.ValidateGeneratePackageOnBuild;
 
 public class WaitForLockFile : Microsoft.Build.Utilities.Task
 {
-    // TODO: Racy; use a file with custom text + retry
-
     [Required]
     public string? LockFile { get; set; }
 
+    public int SleepSeconds { get; set; } = 2;
+
+    public int RetryCount { get; set; } = 100;
+
     public override bool Execute()
     {
-        TimeSpan delay = TimeSpan.FromSeconds(5);
+        // TODO: Give up eventually
+
+        if (LockFile is null) { throw new ArgumentNullException(nameof(LockFile)); }
+
+        TimeSpan delay = TimeSpan.FromSeconds(SleepSeconds);
         string uniqueMarker = Guid.NewGuid().ToString();
 
         loop:
-        while (File.Exists(LockFile))
+        TryWriteLock(LockFile, uniqueMarker);
+        if (IsMyLock(LockFile, uniqueMarker))
         {
-            if (!IsMyLock(LockFile, uniqueMarker))
-            {
-                Log.LogMessage(
-                    MessageImportance.Normal,
-                    $"Waiting for lock file '{LockFile}' to be deleted. Sleeping for '{delay}'...");
-
-                Thread.Sleep(delay);
-            }
+            return true;
         }
 
-        return true;
+        Log.LogMessage(
+            MessageImportance.Normal,
+            $"Waiting for lock file '{LockFile}' to be deleted. Sleeping for '{delay}'...");
+
+        Thread.Sleep(delay);
+
+        goto loop;
     }
 
     private static bool IsMyLock(string path, string uniqueMarker)
@@ -44,5 +50,19 @@ public class WaitForLockFile : Microsoft.Build.Utilities.Task
         }
 
         return false;
+    }
+
+    private static void TryWriteLock(string path, string uniqueMarker)
+    {
+        try
+        {
+            using StreamWriter writer = new StreamWriter(File.Create(path));
+
+            writer.Write(uniqueMarker);
+        }
+        catch
+        {
+            // Do nothing
+        }
     }
 }
