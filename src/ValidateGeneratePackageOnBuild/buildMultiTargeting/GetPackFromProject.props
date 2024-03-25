@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <GetPackFromProject_IsOuterBuild>true</GetPackFromProject_IsOuterBuild>
+  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)\..\build\$(MSBuildThisFile)" />
+</Project>

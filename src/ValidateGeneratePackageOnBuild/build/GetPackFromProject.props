@@ -2,8 +2,6 @@
   <PropertyGroup>
     <GetPackFromProject_ShouldDebug Condition="'$(GetPackFromProject_ShouldDebug)' == ''">false</GetPackFromProject_ShouldDebug>
     <GetPackFromProject_CopyToOutputDirectory>PreserveNewest</GetPackFromProject_CopyToOutputDirectory>
-    <GetPackFromProject_LockSleepSeconds>2</GetPackFromProject_LockSleepSeconds>
-    <GetPackFromProject_LockMaxRetries>100</GetPackFromProject_LockMaxRetries>
 
     <!-- These paths need to be coordinated with the PackagePath defined in the project. -->
     <_TaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">netfx</_TaskAssembly>
@@ -13,5 +11,4 @@
 
   <!-- TODO: Should revisit the TaskFactory if it impacts performance -->
   <UsingTask TaskName="ValidateGeneratePackageOnBuild" AssemblyFile="$(_TaskAssembly)" TaskFactory="TaskHostFactory" />
-  <UsingTask TaskName="WaitForLockFile" AssemblyFile="$(_TaskAssembly)" TaskFactory="TaskHostFactory" />
 </Project>

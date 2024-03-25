@@ -50,8 +50,9 @@
     <ItemGroup>
       <None Visible="false" Include="$(TaskBinNetCore)/build/**/*.*" Pack="true" PackagePath="build/" />
       <None Visible="false" Include="$(TaskBinNetCore)/buildTransitive/**/*.*" Pack="true" PackagePath="buildTransitive/" />
-      <None Visible="false" Include="$(TaskBinNetCore)/**/*.*" Exclude="$(TaskBinNetCore)/build/**/*.*;$(TaskBinNetCore)/buildTransitive/**/*.*" Pack="true" PackagePath="tasks/netcore/" />
-      <None Visible="false" Include="$(TaskBinNetFx)/**/*.*" Exclude="$(TaskBinNetFx)/build/**/*.*;$(TaskBinNetFx)/buildTransitive/**/*.*" Pack="true" PackagePath="tasks/netfx/" />
+      <None Visible="false" Include="$(TaskBinNetCore)/buildMultiTargeting/**/*.*" Pack="true" PackagePath="buildMultiTargeting/" />
+      <None Visible="false" Include="$(TaskBinNetCore)/**/*.*" Exclude="$(TaskBinNetCore)/build/**/*.*;$(TaskBinNetCore)/buildTransitive/**/*.*;$(TaskBinNetCore)/buildMultiTargeting/**/*.*" Pack="true" PackagePath="tasks/netcore/" />
+      <None Visible="false" Include="$(TaskBinNetFx)/**/*.*" Exclude="$(TaskBinNetFx)/build/**/*.*;$(TaskBinNetFx)/buildTransitive/**/*.*;$(TaskBinNetFx)/buildMultiTargeting/**/*.*" Pack="true" PackagePath="tasks/netfx/" />
     </ItemGroup>
   </Target>
 
