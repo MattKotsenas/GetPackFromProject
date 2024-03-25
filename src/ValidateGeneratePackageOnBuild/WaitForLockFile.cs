@@ -1,4 +1,6 @@
-﻿using Microsoft.Build.Framework;
+﻿using System.Diagnostics;
+
+using Microsoft.Build.Framework;
 
 namespace GetPackFromProject.MSBuild.ValidateGeneratePackageOnBuild;
 
@@ -13,9 +15,17 @@ public class WaitForLockFile : Microsoft.Build.Utilities.Task
     [Required]
     public int MaxRetries { get; set; }
 
+    [Required]
+    public bool AttachDebugger { get; set; }
+
     public override bool Execute()
     {
         if (LockFile is null) { throw new ArgumentNullException(nameof(LockFile)); }
+
+        if (AttachDebugger)
+        {
+            Debugger.Launch();
+        }
 
         TimeSpan delay = TimeSpan.FromSeconds(SleepSeconds);
         string uniqueMarker = Guid.NewGuid().ToString();
@@ -75,7 +85,8 @@ public class WaitForLockFile : Microsoft.Build.Utilities.Task
     {
         try
         {
-            using StreamWriter writer = new StreamWriter(File.Create(path));
+            using StreamWriter writer = new(
+                new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None));
 
             writer.Write(uniqueMarker);
         }

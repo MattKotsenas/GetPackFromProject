@@ -7,7 +7,7 @@
 
     <Message Text="Projects to copy @(_ProjectsToCopy)" Importance="Low" />
 
-    <ValidateGeneratePackageOnBuild Condition="'%(_ProjectsToCopy.Identity)' != ''" ProjectFile="%(_ProjectsToCopy.Identity)" AttachDebugger="$(GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug)" />
+    <ValidateGeneratePackageOnBuild Condition="'%(_ProjectsToCopy.Identity)' != ''" ProjectFile="%(_ProjectsToCopy.Identity)" AttachDebugger="$(GetPackFromProject_ShouldDebug)" />
 
     <!-- TODO: Ideally we could rely on a public API and not a private target -->
     <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="_GetOutputItemsFromPack">
@@ -19,12 +19,20 @@
       we need to call Pack ourselves. In single build scenarios, Pack will be called
       via `GeneratePackageOnBuild`.
     -->
+    <PropertyGroup>
+      <_GetPackFromProject_LockFile>$(IntermediateOutputPath)/GetPackFromProject.lock</_GetPackFromProject_LockFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <!-- If a build fails / fails to clean up the lock file, make sure the Clean target deletes them. -->
+      <FileWrites Include="$(_GetPackFromProject_LockFile)"/>
+    </ItemGroup>
     <WaitForLockFile
-      LockFile="$(IntermediateOutputPath)/GetPackFromProject.lock"
+      LockFile="$(_GetPackFromProject_LockFile)"
       SleepSeconds="$(GetPackFromProject_LockSleepSeconds)"
-      MaxRetries="$(GetPackFromProject_LockMaxRetries)"/>
+      MaxRetries="$(GetPackFromProject_LockMaxRetries)"
+      AttachDebugger="$(GetPackFromProject_ShouldDebug)" />
     <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="Pack" />
-    <Delete Files="$(IntermediateOutputPath)/GetPackFromProject.lock" />
+    <Delete Files="$(_GetPackFromProject_LockFile)" />
 
     <Message Text="Dependent TargetOutputs is '%(_DependentPackageOutputs.Identity)'" Importance="Low" />
 

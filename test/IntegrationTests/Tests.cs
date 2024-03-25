@@ -7,6 +7,9 @@ using Xunit.Abstractions;
 
 namespace GetPackFromProject.IntegrationTests;
 
+// TODO: WhenTheConfigurationIsCorrect_ShouldPassWhenLeafProjectHasProperty fails
+// when it is run by itself in multi-targeting scenarios
+
 public class GivenAProjectWithAProjectReference: TestBase
 {
     protected FileInfo Package { get; private set; }
@@ -164,66 +167,73 @@ public class GivenAProjectWithAProjectReference: TestBase
                 .HaveCount(targetFrameworks.Length, "there should be a .nupkg per output directory");
         }
     }
+
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net7.0", "net8.0")]
+    public void WhenTheConfigurationIsCorrect_ShouldHandleAndCleanupLockFiles(params string[] targetFrameworks)
+    {
+        using (PackageRepository.Create(Temp.FullName)
+            .Package(Package, out Package package))
+        {
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: true, targetFrameworks).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+
+            ProjectCreator main = ProjectCreator.Templates
+                .SdkCsproj(targetFrameworks)
+                .PropertyGroup()
+                    .Property("EnableSimulateLock", "true")
+                    .Property("GetPackFromProject_LockMaxRetries", "1")
+                    .Property("GetPackFromProject_LockSleepSeconds", "0")
+                .ItemPackageReference(package)
+                .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
+                {
+                    { "AddPackageAsOutput", "true" }
+                })
+                .Target("SimulateLockFile", beforeTargets: "BeforeBuild", condition: "('$(IsInnerBuild)' == 'true' OR '$(TargetFrameworks)' == '') AND '$(EnableSimulateLock)' == 'true'")
+                    .Task(name: "Message", parameters: new Dictionary<string, string?>
+                    {
+                        { "Text", $"Simulating lock file at path '$(IntermediateOutputPath)\\GetPackFromProject.lock'." },
+                        { "Importance", "Low" }
+                    })
+                    .Task(name: "WriteLinesToFile", parameters: new Dictionary<string, string?>
+                    {
+                        { "File", "$(IntermediateOutputPath)\\GetPackFromProject.lock" },
+                        { "Lines", "this-simulates-a-build-already-in-progress" }
+                    })
+                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"));
+
+            main.TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
+
+            buildOutput.ErrorEvents
+                .Where(error =>
+                    error.Message is not null &&
+                    error.Message.StartsWith("Unable to acquire lock file") &&
+                    error.Message.EndsWith("after '1' tries."))
+                .Should()
+                .HaveCount(targetFrameworks.Length);
+            buildOutput.WarningEvents.Should().BeEmpty();
+
+            result.Should().BeFalse();
+
+            // In failure cases, lock files remain
+            string[] lockPaths = targetFrameworks.Select(tf => Path.Combine(Temp.FullName, "Sample", "obj", "Debug", tf, "GetPackFromProject.lock")).ToArray();
+            lockPaths.Should().OnlyContain(lockPath => File.Exists(lockPath), "lock files should exist");
+
+            // Clean deletes a lock file
+            main.TryBuild(target: "Clean", out result, out buildOutput);
+            buildOutput.ErrorEvents.Should().BeEmpty();
+            result.Should().BeTrue();
+            lockPaths.Should().OnlyContain(lockPath => !File.Exists(lockPath), "lock files should be deleted");
+
+            // In success cases, the lock file is gone
+            Dictionary<string, string> properties = new()
+            {
+                { "EnableSimulateLock", "false" }
+            };
+            main.TryBuild(target: "Build", properties, out result, out buildOutput);
+            buildOutput.ErrorEvents.Should().BeEmpty();
+            result.Should().BeTrue();
+            lockPaths.Should().OnlyContain(lockPath => !File.Exists(lockPath), "lock files should be deleted");
+        }
+    }
 }
-
-
-//internal class CollectionContainsExtensionsAssertions<TCollection, T, TAssertions> : ReferenceTypeAssertions<TCollection, TAssertions>
-//    where TCollection : IEnumerable<T>
-//    where TAssertions : CollectionContainsExtensionsAssertions<TCollection, T, TAssertions>
-//{
-//    public CollectionContainsExtensionsAssertions(TCollection actualValue)
-//        : base(actualValue)
-//    {
-//    }
-
-//    protected override string Identifier => "collection";
-
-//    // TODO: Fix xmldocs
-
-//    /// <summary>
-//    /// Expects the current collection to contain only a single item matching the specified <paramref name="predicate"/>.
-//    /// </summary>
-//    /// <param name="predicate">The predicate that will be used to find the matching items.</param>
-//    /// <param name="because">
-//    /// A formatted phrase as is supported by <see cref="string.Format(string,object[])" /> explaining why the assertion
-//    /// is needed. If the phrase does not start with the word <i>because</i>, it is prepended automatically.
-//    /// </param>
-//    /// <param name="becauseArgs">
-//    /// Zero or more objects to format using the placeholders in <paramref name="because" />.
-//    /// </param>
-//    /// <exception cref="ArgumentNullException"><paramref name="predicate"/> is <see langword="null"/>.</exception>
-//    public AndWhichConstraint<TAssertions, T> Contain(Expression<Func<T, bool>> predicate, OccurrenceConstraint occurrence,
-//        string because = "", params object[] becauseArgs)
-//    {
-//        if (predicate is null) { throw new ArgumentNullException(nameof(predicate)); }
-
-//        const string expectationPrefix =
-//            "Expected {context:collection} to contain a single item matching {0}{reason}, ";
-
-//        bool success = Execute.Assertion
-//            .BecauseOf(because, becauseArgs)
-//            .ForCondition(Subject is not null)
-//            .FailWith(expectationPrefix + "but found <null>.", predicate);
-
-//        T[] matches = Array.Empty<T>();
-
-//        if (success)
-//        {
-//            ICollection<T> actualItems = (Subject is not null) ? Subject.ToList() : [];//.ConvertOrCastToCollection();
-
-//            Execute.Assertion
-//                .ForCondition(actualItems.Count > 0)
-//                .BecauseOf(because, becauseArgs)
-//                .FailWith(expectationPrefix + "but the collection is empty.", predicate);
-
-//            matches = actualItems.Where(predicate.Compile()).ToArray();
-//            int count = matches.Length;
-
-//            Execute.Assertion
-//                .ForConstraint(occurrence, count)
-//                .FailWith(expectationPrefix + "but " + count.ToString(CultureInfo.InvariantCulture) + " such items were found.");
-//        }
-
-//        return new AndWhichConstraint<TAssertions, T>((TAssertions)this, matches);
-//    }
-//}

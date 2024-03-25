@@ -10,7 +10,8 @@ public class ValidateGeneratePackageOnBuild : Microsoft.Build.Utilities.Task
     [Required]
     public string? ProjectFile { get; set; }
 
-    public string? AttachDebugger { get; set; }
+    [Required]
+    public bool AttachDebugger { get; set; }
 
     private Project GetProject()
     {
@@ -23,7 +24,7 @@ public class ValidateGeneratePackageOnBuild : Microsoft.Build.Utilities.Task
 
     public override bool Execute()
     {
-        if (ShouldDebug())
+        if (AttachDebugger)
         {
             Debugger.Launch();
         }
@@ -51,12 +52,5 @@ public class ValidateGeneratePackageOnBuild : Microsoft.Build.Utilities.Task
             endLineNumber: 0,
             endColumnNumber: 0,
             message: message);
-    }
-
-    private bool ShouldDebug()
-    {
-        bool wasParsed = bool.TryParse(AttachDebugger, out bool debug);
-
-        return wasParsed && debug;
     }
 }
