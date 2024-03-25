@@ -1,16 +1,9 @@
-using System.Globalization;
-using System.Linq.Expressions;
-using System;
-
 using FluentAssertions;
-using FluentAssertions.Execution;
 
 using Microsoft.Build.Execution;
 using Microsoft.Build.Utilities.ProjectCreation;
 
 using Xunit.Abstractions;
-using FluentAssertions.Collections;
-using FluentAssertions.Primitives;
 
 namespace GetPackFromProject.IntegrationTests;
 
@@ -18,7 +11,7 @@ public class GivenAProjectWithAProjectReference: TestBase
 {
     protected FileInfo Package { get; private set; }
 
-    public GivenAProjectWithAProjectReference(ITestOutputHelper logger)
+    public GivenAProjectWithAProjectReference(ITestOutputHelper logger) : base(logger)
     {
         logger.WriteLine($"Enumerating files:{string.Join("\n\t", WorkingDirectory.GetFiles().Select(f => f.FullName))}");
 

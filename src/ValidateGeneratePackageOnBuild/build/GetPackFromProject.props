@@ -2,6 +2,8 @@
   <PropertyGroup>
     <GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug Condition="'$(ValidateGeneratePackageOnBuildShouldDebug)' == ''">false</GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug>
     <GetPackFromProject_CopyToOutputDirectory>PreserveNewest</GetPackFromProject_CopyToOutputDirectory>
+    <GetPackFromProject_LockSleepSeconds>2</GetPackFromProject_LockSleepSeconds>
+    <GetPackFromProject_LockMaxRetries>100</GetPackFromProject_LockMaxRetries>
 
     <!-- These paths need to be coordinated with the PackagePath defined in the project. -->
     <_TaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">netfx</_TaskAssembly>

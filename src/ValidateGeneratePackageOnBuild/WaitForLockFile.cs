@@ -7,9 +7,11 @@ public class WaitForLockFile : Microsoft.Build.Utilities.Task
     [Required]
     public string? LockFile { get; set; }
 
-    public int SleepSeconds { get; set; } = 2;
+    [Required]
+    public int SleepSeconds { get; set; }
 
-    public int RetryCount { get; set; } = 100;
+    [Required]
+    public int MaxRetries { get; set; }
 
     public override bool Execute()
     {
@@ -19,7 +21,7 @@ public class WaitForLockFile : Microsoft.Build.Utilities.Task
         string uniqueMarker = Guid.NewGuid().ToString();
         int retries = 0;
 
-        while (retries < RetryCount)
+        while (retries < MaxRetries)
         {
             TryWriteLock(LockFile, uniqueMarker);
             if (IsMyLock(LockFile, uniqueMarker))
@@ -29,13 +31,13 @@ public class WaitForLockFile : Microsoft.Build.Utilities.Task
 
             Log.LogMessage(
                 MessageImportance.Normal,
-                $"Waiting for lock file '{LockFile}' to be deleted. Sleeping for '{delay}' (retry {retries} of {RetryCount})...");
+                $"Waiting for lock file '{LockFile}' to be deleted. Sleeping for '{delay}' (retry {retries} of {MaxRetries})...");
 
             Thread.Sleep(delay);
             retries += 1;
         }
 
-        LogDiagnostic("GPP002", null!, $"Unable to acquire lock file '{LockFile}' after '{RetryCount}' tries.");
+        LogDiagnostic("GPP002", null!, $"Unable to acquire lock file '{LockFile}' after '{MaxRetries}' tries.");
         return false;
     }
 

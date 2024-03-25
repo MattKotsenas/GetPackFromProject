@@ -19,9 +19,12 @@
       we need to call Pack ourselves. In single build scenarios, Pack will be called
       via `GeneratePackageOnBuild`.
     -->
-    <WaitForLockFile LockFile="$(IntermediateOutputPath)/foo.lock" />
+    <WaitForLockFile
+      LockFile="$(IntermediateOutputPath)/GetPackFromProject.lock"
+      SleepSeconds="$(GetPackFromProject_LockSleepSeconds)"
+      MaxRetries="$(GetPackFromProject_LockMaxRetries)"/>
     <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="Pack" />
-    <Delete Files="$(IntermediateOutputPath)/foo.lock" />
+    <Delete Files="$(IntermediateOutputPath)/GetPackFromProject.lock" />
 
     <Message Text="Dependent TargetOutputs is '%(_DependentPackageOutputs.Identity)'" Importance="Low" />
 
