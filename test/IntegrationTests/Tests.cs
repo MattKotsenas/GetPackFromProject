@@ -189,35 +189,22 @@ public class GivenAProjectWithAProjectReference: TestBase
 
     private static string GenerateMainPackageDirectory(DirectoryInfo directory, bool useArtifactsOutput)
     {
-        if (useArtifactsOutput)
-        {
-            return Path.Combine(directory.FullName, "artifacts", "bin", "Sample");
-        }
-
-        return Path.Combine(directory.FullName, "Sample", "bin", "Debug");
+        return useArtifactsOutput
+            ? Path.Combine(directory.FullName, "artifacts", "bin", "Sample")
+            : Path.Combine(directory.FullName, "Sample", "bin", "Debug");
     }
 
     private static string GenerateLeafNupkgPath(bool useArtifactsOutput, DirectoryInfo directory)
     {
-        char sep = Path.DirectorySeparatorChar;
-
-        if (useArtifactsOutput)
-        {
-            return $"{directory.FullName}{sep}artifacts{sep}package{sep}debug{sep}Leaf.1.0.0-deadbeef.nupkg";
-        }
-
-        return $"{directory.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg";
+        return useArtifactsOutput
+            ? Path.Combine(directory.FullName, "artifacts", "package", "debug", "Leaf.1.0.0-deadbeef.nupkg")
+            : Path.Combine(directory.FullName, "Leaf", "bin", "Debug", "Leaf.1.0.0-deadbeef.nupkg");
     }
 
     private static string GenerateLeafNuspecPath(bool useArtifactsOutput, DirectoryInfo directory)
     {
-        char sep = Path.DirectorySeparatorChar;
-
-        if (useArtifactsOutput)
-        {
-            return $"{directory.FullName}{sep}artifacts{sep}obj{sep}Leaf{sep}Debug{sep}Leaf.1.0.0-deadbeef.nuspec";
-        }
-
-        return $"{directory.FullName}{sep}Leaf{sep}obj{sep}Debug{sep}Leaf.1.0.0-deadbeef.nuspec";
+        return useArtifactsOutput
+            ? Path.Combine(directory.FullName, "artifacts", "obj", "Leaf", "Debug", "Leaf.1.0.0-deadbeef.nuspec")
+            : Path.Combine(directory.FullName, "Leaf", "obj", "Debug", "Leaf.1.0.0-deadbeef.nuspec");
     }
 }
