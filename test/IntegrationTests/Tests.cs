@@ -1,3 +1,5 @@
+using System.Collections;
+
 using FluentAssertions;
 
 using Microsoft.Build.Execution;
@@ -6,6 +8,22 @@ using Microsoft.Build.Utilities.ProjectCreation;
 using Xunit.Abstractions;
 
 namespace GetPackFromProject.IntegrationTests;
+
+public class TargetFrameworkData : IEnumerable<object[]>
+{
+    public IEnumerator<object[]> GetEnumerator()
+    {
+        yield return new object[] { new[] { "net8.0" }, new[] { "net7.0" } };
+        yield return new object[] { new[] { "net8.0" }, new[] { "net7.0", "net8.0" } };
+        yield return new object[] { new[] { "net7.0", "net8.0" }, new[] { "net7.0" } };
+        yield return new object[] { new[] { "net7.0", "net8.0" }, new[] { "net7.0", "net8.0" } };
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+}
 
 public class GivenAProjectWithAProjectReference: TestBase
 {
@@ -19,25 +37,25 @@ public class GivenAProjectWithAProjectReference: TestBase
     }
 
     [Theory]
-    [InlineData("net8.0")]
-    [InlineData("net7.0", "net8.0")]
-    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_ItShouldWarn(params string[] targetFrameworks)
+    [ClassData(typeof(TargetFrameworkData))]
+    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_ItShouldWarn(string[] mainTfms, string[] leafTfms)
     {
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, targetFrameworks).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
-            ProjectCreator.Templates
-                .SdkCsproj(targetFrameworks)
+            ProjectCreator main = ProjectCreator.Templates
+                .SdkCsproj(mainTfms)
                 .Property("GetPackFromProject_CopyToOutputDirectory", "Never")
                 .ItemPackageReference(package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }
                 })
-                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
-                .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
+                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"));
+
+            main.TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
             buildOutput.WarningEvents.Should()
                 .HaveCount(1)
@@ -49,17 +67,16 @@ public class GivenAProjectWithAProjectReference: TestBase
     }
 
     [Theory]
-    [InlineData("net8.0")]
-    [InlineData("net7.0", "net8.0")]
-    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_WhenWarningsAreErrorsItShouldError(params string[] targetFrameworks)
+    [ClassData(typeof(TargetFrameworkData))]
+    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_WhenWarningsAreErrorsItShouldError(string[] mainTfms, string[] leafTfms)
     {
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, targetFrameworks).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator.Templates
-                .SdkCsproj(targetFrameworks)
+                .SdkCsproj(mainTfms)
                 .ItemPackageReference(package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
@@ -78,17 +95,16 @@ public class GivenAProjectWithAProjectReference: TestBase
     }
 
     [Theory]
-    [InlineData("net8.0")]
-    [InlineData("net7.0", "net8.0")]
-    public void WhenThePackageReferencePropertyIsNotUsed_ItShouldPass(params string[] targetFrameworks)
+    [ClassData(typeof(TargetFrameworkData))]
+    public void WhenThePackageReferencePropertyIsNotUsed_ItShouldPass(string[] mainTfms, string[] leafTfms)
     {
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, targetFrameworks).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator.Templates
-                .SdkCsproj(targetFrameworks)
+                .SdkCsproj(mainTfms)
                 .ItemPackageReference(package)
                 .ItemProjectReference(leafProject)
                 .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
@@ -102,9 +118,8 @@ public class GivenAProjectWithAProjectReference: TestBase
     }
 
     [Theory]
-    [InlineData("net8.0")]
-    [InlineData("net7.0", "net8.0")]
-    public void WhenTheConfigurationIsCorrect_ShouldPassWhenLeafProjectHasProperty(params string[] targetFrameworks)
+    [ClassData(typeof(TargetFrameworkData))]
+    public void WhenTheConfigurationIsCorrect_ShouldPassWhenLeafProjectHasProperty(string[] mainTfms, string[] leafTfms)
     {
         string contentHasMetadata = "Content has metadata:";
         string projectsWithMetadata = "ProjectReferences with metadata:";
@@ -114,10 +129,10 @@ public class GivenAProjectWithAProjectReference: TestBase
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: true, targetFrameworks).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: true, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator main = ProjectCreator.Templates
-                .SdkCsproj(targetFrameworks)
+                .SdkCsproj(mainTfms)
                 .ItemPackageReference(package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
@@ -148,21 +163,21 @@ public class GivenAProjectWithAProjectReference: TestBase
 
             buildOutput.Messages
                 .Where(message => message == $"{contentHasMetadata}{Temp.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg")
-                .Should().HaveCount(targetFrameworks.Length);
+                .Should().HaveCount(mainTfms.Length);
             buildOutput.Messages
                 .Where(message => message == $"{projectsWithMetadata}{leafProject.FullPath}")
-                .Should().HaveCount(targetFrameworks.Length);
+                .Should().HaveCount(mainTfms.Length);
             buildOutput.Messages
                 .Where(message => message == $"{projectMetadata}{Temp.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg;{Temp.FullName}{sep}Leaf{sep}obj{sep}Debug{sep}Leaf.1.0.0-deadbeef.nuspec")
                 .Should()
-                .HaveCount(targetFrameworks.Length);
+                .HaveCount(mainTfms.Length);
 
             result.Should().BeTrue();
 
             string binDir = Path.Combine(Temp.FullName, "Sample", "bin", "Debug");
             Directory.GetFiles(binDir, "Leaf*.nupkg", SearchOption.AllDirectories)
                 .Should()
-                .HaveCount(targetFrameworks.Length, "there should be a .nupkg per output directory");
+                .HaveCount(mainTfms.Length, "there should be a .nupkg per output directory");
         }
     }
 }
