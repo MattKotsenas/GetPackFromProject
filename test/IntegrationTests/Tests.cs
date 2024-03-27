@@ -51,13 +51,13 @@ public class GivenAProjectWithAProjectReference: TestBase
             ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: false);
 
             ProjectCreator main = ProjectCreator.Templates
-                .MainProject(mainTfms, package)
+                .MainProject(Temp, mainTfms, package)
                 .Property("GetPackFromProject_CopyToOutputDirectory", "Never")
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }
                 })
-                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"));
+                .Save();
 
             main.TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
@@ -82,13 +82,13 @@ public class GivenAProjectWithAProjectReference: TestBase
             ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: false);
 
             ProjectCreator.Templates
-                .MainProject(mainTfms, package)
+                .MainProject(Temp, mainTfms, package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }
                 })
                 .Property("MSBuildTreatWarningsAsErrors", "true")
-                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
+                .Save()
                 .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
             buildOutput.ErrorEvents.Should()
@@ -111,9 +111,9 @@ public class GivenAProjectWithAProjectReference: TestBase
             ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: false);
 
             ProjectCreator.Templates
-                .MainProject(mainTfms, package)
+                .MainProject(Temp, mainTfms, package)
                 .ItemProjectReference(leafProject)
-                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
+                .Save()
                 .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
             buildOutput.ErrorEvents.Should().BeEmpty();
@@ -139,7 +139,7 @@ public class GivenAProjectWithAProjectReference: TestBase
             ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: true);
 
             ProjectCreator main = ProjectCreator.Templates
-                .MainProject(mainTfms, package)
+                .MainProject(Temp, mainTfms, package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }
@@ -160,7 +160,7 @@ public class GivenAProjectWithAProjectReference: TestBase
                         { "Text", $"{projectMetadata}%(ProjectReference.PackageOutputs)" },
                         { "Importance", "High" }
                     })
-                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"));
+                .Save();
 
             main.TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 

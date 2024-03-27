@@ -21,11 +21,12 @@ internal static class ProjectCreatorTemplatesExtensions
         return project;
     }
 
-    public static ProjectCreator MainProject(this ProjectCreatorTemplates templates, string[] targetFrameworks, Package package)
+    public static ProjectCreator MainProject(this ProjectCreatorTemplates templates, DirectoryInfo directory, string[] targetFrameworks, Package package)
     {
         ProjectCreator project = templates
             .SdkCsproj(targetFrameworks)
-            .ItemPackageReference(package);
+            .ItemPackageReference(package)
+            .Save(Path.Combine(directory.FullName, "Sample", $"Sample.csproj"));
 
         return project;
     }
