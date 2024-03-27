@@ -46,9 +46,8 @@ public class GivenAProjectWithAProjectReference: TestBase
             ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator main = ProjectCreator.Templates
-                .SdkCsproj(mainTfms)
+                .MainProject(mainTfms, package, useArtifactsOutput: false)
                 .Property("GetPackFromProject_CopyToOutputDirectory", "Never")
-                .ItemPackageReference(package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }
@@ -76,8 +75,7 @@ public class GivenAProjectWithAProjectReference: TestBase
             ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator.Templates
-                .SdkCsproj(mainTfms)
-                .ItemPackageReference(package)
+                .MainProject(mainTfms, package, useArtifactsOutput: false)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }
@@ -104,8 +102,7 @@ public class GivenAProjectWithAProjectReference: TestBase
             ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator.Templates
-                .SdkCsproj(mainTfms)
-                .ItemPackageReference(package)
+                .MainProject(mainTfms, package, useArtifactsOutput: false)
                 .ItemProjectReference(leafProject)
                 .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
                 .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
@@ -132,8 +129,7 @@ public class GivenAProjectWithAProjectReference: TestBase
             ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: true, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
 
             ProjectCreator main = ProjectCreator.Templates
-                .SdkCsproj(mainTfms)
-                .ItemPackageReference(package)
+                .MainProject(mainTfms, package, useArtifactsOutput: false)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }

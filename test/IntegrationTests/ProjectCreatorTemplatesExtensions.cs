@@ -17,4 +17,12 @@ internal static class ProjectCreatorTemplatesExtensions
 
         return project;
     }
+
+    public static ProjectCreator MainProject(this ProjectCreatorTemplates templates, string[] targetFrameworks, Package package, bool useArtifactsOutput)
+    {
+        return templates
+            .SdkCsproj(targetFrameworks)
+            .Property("UseArtifactsOutput", useArtifactsOutput.ToString().ToLowerInvariant())
+            .ItemPackageReference(package);
+    }
 }
