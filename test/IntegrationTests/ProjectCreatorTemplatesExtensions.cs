@@ -5,7 +5,7 @@ namespace GetPackFromProject.IntegrationTests;
 
 internal static class ProjectCreatorTemplatesExtensions
 {
-    public static ProjectCreator ProjectThatProducesAPackage(this ProjectCreatorTemplates templates, string[] targetFrameworks, bool generatePackageOnBuild)
+    public static ProjectCreator ProjectThatProducesAPackage(this ProjectCreatorTemplates templates, DirectoryInfo directory, string[] targetFrameworks, bool generatePackageOnBuild)
     {
         ProjectCreator project = templates
             .SdkCsproj(targetFrameworks)
@@ -15,6 +15,8 @@ internal static class ProjectCreatorTemplatesExtensions
         {
             project.Property("GeneratePackageOnBuild", "true");
         }
+
+        project.Save(Path.Combine(directory.FullName, "Leaf", "Leaf.csproj"));
 
         return project;
     }

@@ -48,7 +48,7 @@ public class GivenAProjectWithAProjectReference: TestBase
         {
             ProjectCreator.Templates.DirectoryBuildProps(Temp, useArtifactsOutput);
 
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(leafTfms, generatePackageOnBuild: false).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: false);
 
             ProjectCreator main = ProjectCreator.Templates
                 .MainProject(mainTfms, package)
@@ -79,7 +79,7 @@ public class GivenAProjectWithAProjectReference: TestBase
         {
             ProjectCreator.Templates.DirectoryBuildProps(Temp, useArtifactsOutput);
 
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(leafTfms, generatePackageOnBuild: false).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: false);
 
             ProjectCreator.Templates
                 .MainProject(mainTfms, package)
@@ -108,7 +108,7 @@ public class GivenAProjectWithAProjectReference: TestBase
         {
             ProjectCreator.Templates.DirectoryBuildProps(Temp, useArtifactsOutput);
 
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(leafTfms, generatePackageOnBuild: false).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: false);
 
             ProjectCreator.Templates
                 .MainProject(mainTfms, package)
@@ -136,7 +136,7 @@ public class GivenAProjectWithAProjectReference: TestBase
         {
             ProjectCreator.Templates.DirectoryBuildProps(Temp, useArtifactsOutput);
 
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(leafTfms, generatePackageOnBuild: true).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: true);
 
             ProjectCreator main = ProjectCreator.Templates
                 .MainProject(mainTfms, package)
