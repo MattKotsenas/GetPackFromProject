@@ -7,9 +7,6 @@ using Xunit.Abstractions;
 
 namespace GetPackFromProject.IntegrationTests;
 
-// TODO: WhenTheConfigurationIsCorrect_ShouldPassWhenLeafProjectHasProperty fails
-// when it is run by itself in multi-targeting scenarios
-
 public class GivenAProjectWithAProjectReference: TestBase
 {
     protected FileInfo Package { get; private set; }
@@ -168,73 +165,4 @@ public class GivenAProjectWithAProjectReference: TestBase
                 .HaveCount(targetFrameworks.Length, "there should be a .nupkg per output directory");
         }
     }
-
-    //[Theory]
-    //[InlineData("net8.0")]
-    //[InlineData("net7.0", "net8.0")]
-    //public void WhenTheConfigurationIsCorrect_ShouldHandleAndCleanupLockFiles(params string[] targetFrameworks)
-    //{
-    //    using (PackageRepository.Create(Temp.FullName)
-    //        .Package(Package, out Package package))
-    //    {
-    //        ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: true, targetFrameworks).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
-
-    //        ProjectCreator main = ProjectCreator.Templates
-    //            .SdkCsproj(targetFrameworks)
-    //            .PropertyGroup()
-    //                .Property("EnableSimulateLock", "true")
-    //                .Property("GetPackFromProject_LockMaxRetries", "1")
-    //                .Property("GetPackFromProject_LockSleepSeconds", "0")
-    //            .ItemPackageReference(package)
-    //            .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
-    //            {
-    //                { "AddPackageAsOutput", "true" }
-    //            })
-    //            .Target("SimulateLockFile", beforeTargets: "BeforeBuild", condition: "('$(IsInnerBuild)' == 'true' OR '$(TargetFrameworks)' == '') AND '$(EnableSimulateLock)' == 'true'")
-    //                .Task(name: "Message", parameters: new Dictionary<string, string?>
-    //                {
-    //                    { "Text", $"Simulating lock file at path '$(BaseIntermediateOutputPath)\\GetPackFromProject.lock'." },
-    //                    { "Importance", "Low" }
-    //                })
-    //                .Task(name: "WriteLinesToFile", parameters: new Dictionary<string, string?>
-    //                {
-    //                    { "File", "$(BaseIntermediateOutputPath)\\GetPackFromProject.lock" },
-    //                    { "Lines", "this-simulates-a-build-already-in-progress" }
-    //                })
-    //            .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"));
-
-    //        main.TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
-
-    //        buildOutput.ErrorEvents
-    //            .Where(error =>
-    //                error.Message is not null &&
-    //                error.Message.StartsWith("Unable to acquire lock file") &&
-    //                error.Message.EndsWith("after '1' tries."))
-    //            .Should()
-    //            .HaveCount(targetFrameworks.Length);
-    //        buildOutput.WarningEvents.Should().BeEmpty();
-
-    //        result.Should().BeFalse();
-
-    //        // In failure cases, lock files remain
-    //        string[] lockPaths = targetFrameworks.Select(tf => Path.Combine(Temp.FullName, "Sample", "obj", "GetPackFromProject.lock")).ToArray();
-    //        lockPaths.Should().OnlyContain(lockPath => File.Exists(lockPath), "lock files should exist");
-
-    //        // Clean deletes a lock file
-    //        main.TryBuild(target: "Clean", out result, out buildOutput);
-    //        buildOutput.ErrorEvents.Should().BeEmpty();
-    //        result.Should().BeTrue();
-    //        lockPaths.Should().OnlyContain(lockPath => !File.Exists(lockPath), "lock files should be deleted");
-
-    //        // In success cases, the lock file is gone
-    //        Dictionary<string, string> properties = new()
-    //        {
-    //            { "EnableSimulateLock", "false" }
-    //        };
-    //        main.TryBuild(target: "Build", properties, out result, out buildOutput);
-    //        buildOutput.ErrorEvents.Should().BeEmpty();
-    //        result.Should().BeTrue();
-    //        lockPaths.Should().OnlyContain(lockPath => !File.Exists(lockPath), "lock files should be deleted");
-    //    }
-    //}
 }

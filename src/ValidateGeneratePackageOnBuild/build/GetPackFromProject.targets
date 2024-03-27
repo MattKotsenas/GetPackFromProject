@@ -21,7 +21,7 @@
     Condition="'$(GetPackFromProject_IsOuterBuild)' == 'true'">
 
     <!--
-      Pack is an outer-build target. In crosstargeting / multi-targeting scenarios
+      Pack is an outer-build target, thus in crosstargeting / multi-targeting scenarios
       we need to call Pack ourselves. In single build scenarios, Pack will be called
       via `GeneratePackageOnBuild`.
     -->
