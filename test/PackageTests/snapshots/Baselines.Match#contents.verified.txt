@@ -4,6 +4,9 @@
 |-- build
 |   |-- GetPackFromProject.props
 |   |-- GetPackFromProject.targets
+|-- buildMultiTargeting
+|   |-- GetPackFromProject.props
+|   |-- GetPackFromProject.targets
 |-- buildTransitive
 |   |-- GetPackFromProject.props
 |   |-- GetPackFromProject.targets

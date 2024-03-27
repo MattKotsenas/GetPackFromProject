@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug Condition="'$(ValidateGeneratePackageOnBuildShouldDebug)' == ''">false</GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug>
+    <GetPackFromProject_ShouldDebug Condition="'$(GetPackFromProject_ShouldDebug)' == ''">false</GetPackFromProject_ShouldDebug>
     <GetPackFromProject_CopyToOutputDirectory>PreserveNewest</GetPackFromProject_CopyToOutputDirectory>
 
     <!-- These paths need to be coordinated with the PackagePath defined in the project. -->

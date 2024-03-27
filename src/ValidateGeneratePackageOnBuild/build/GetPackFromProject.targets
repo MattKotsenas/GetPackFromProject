@@ -1,20 +1,83 @@
 <Project>
 
-  <Target Name="AddProjectPackagesAsOutput" BeforeTargets="AssignTargetPaths">
+  <PropertyGroup>
+    <GetPackFromProject_IsMultiTargeted>false</GetPackFromProject_IsMultiTargeted>
+    <GetPackFromProject_IsMultiTargeted Condition="'$(TargetFrameworks)' != '' AND $(TargetFrameworks.IndexOf(';')) &gt; -1 AND $(TargetFrameworks.IndexOf(';')) != $([MSBuild]::Add($(TargetFrameworks.Length), 1))">true</GetPackFromProject_IsMultiTargeted>
+  </PropertyGroup>
+
+  <Target Name="GetPackFromProject_CollectProjectReferences">
     <ItemGroup>
       <_ProjectsToCopy Include="%(ProjectReference.Identity)" Condition="'%(ProjectReference.AddPackageAsOutput)'  == 'true'" />
     </ItemGroup>
 
-    <Message Text="Projects to copy @(_ProjectsToCopy)" Importance="Low" />
+    <Message Text="Projects to copy @(_ProjectsToCopy)" Importance="Normal" />
 
-    <ValidateGeneratePackageOnBuild Condition="'%(_ProjectsToCopy.Identity)' != ''" ProjectFile="%(_ProjectsToCopy.Identity)" AttachDebugger="$(GetPackFromProject_ValidateGeneratePackageOnBuildShouldDebug)" />
+    <!--
+      Don't run validation on inner builds because if this is an inner build, then
+      by definition there was already an outer build and we don't want duplicate warnings.
+    -->
+    <ValidateGeneratePackageOnBuild Condition="('%(_ProjectsToCopy.Identity)' != '') AND ('$(IsInnerBuild)' != 'true')" ProjectFile="%(_ProjectsToCopy.Identity)" AttachDebugger="$(GetPackFromProject_ShouldDebug)" />
+  </Target>
 
-    <!-- TODO: Ideally we could rely on a public API and not a private target -->
+  <Target
+    Name="GetPackFromProject_PackForMultiTarget"
+    DependsOnTargets="GetPackFromProject_CollectProjectReferences"
+    BeforeTargets="DispatchToInnerBuilds"
+    Condition="'$(GetPackFromProject_IsOuterBuild)' == 'true'">
+
+    <!--
+      Pack is an outer-build target, thus when the leaf is crosstargeting / multi-targeting
+      we need to call Pack ourselves.
+
+      TODO: This does more work than necessary when leaf is single-targeting.
+
+      Since the referencing project is multi-targeting, call build now to avoid races /
+      locked files trying to build twice during inner builds.
+    -->
+
+    <!--
+      Use the 'Build' target and not 'Pack' because the project may not be built yet, and Pack doesn't ensure a
+      build like `dotnet build` does.
+    -->
+    <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="Build" />
+  </Target>
+
+  <Target
+    Name="GetPackFromProject_PackForSingleTarget"
+    DependsOnTargets="GetPackFromProject_CollectProjectReferences"
+    Condition="'$(GetPackFromProject_IsMultiTargeted)' != 'true'">
+    <!--
+      Pack is an outer-build target, thus when the leaf is crosstargeting / multi-targeting
+      we need to call Pack ourselves.
+
+      TODO: This does more work than necessary when leaf is single-targeting.
+
+      Since the referencing project is single-targeting, call build now.
+    -->
+
+    <!--
+      Use the 'Build' target and not 'Pack' because the project may not be built yet, and Pack doesn't ensure a
+      build like `dotnet build` does.
+    -->
+    <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="Build" />
+  </Target>
+
+  <Target
+    Name="AddProjectPackagesAsOutput"
+    DependsOnTargets="GetPackFromProject_CollectProjectReferences;GetPackFromProject_PackForSingleTarget"
+    BeforeTargets="AssignTargetPaths">
+
+    <!--
+      TODO: Ideally we could rely on a public API and not a private target.
+
+      We can assume at this point that the project was either built in the outer build directly,
+      or as part of resolve project references for single-TFM builds.
+    -->
     <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="_GetOutputItemsFromPack">
       <Output TaskParameter="TargetOutputs" ItemName="_DependentPackageOutputs" />
     </MSBuild>
 
-    <Message Text="Dependent TargetOutputs is '%(_DependentPackageOutputs.Identity)'" Importance="Low" />
+    <Message Text="Dependent TargetOutputs is '%(_DependentPackageOutputs.Identity)'" Importance="Normal" />
 
     <ItemGroup Condition="'@(_ProjectsToCopy)' != ''">
       <!-- Update the ProjectReference with its outputs to make finding them easier for users -->
