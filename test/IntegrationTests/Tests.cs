@@ -13,10 +13,13 @@ public class TargetFrameworkData : IEnumerable<object[]>
 {
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return new object[] { new[] { "net8.0" }, new[] { "net7.0" } };
-        yield return new object[] { new[] { "net8.0" }, new[] { "net7.0", "net8.0" } };
-        yield return new object[] { new[] { "net7.0", "net8.0" }, new[] { "net7.0" } };
-        yield return new object[] { new[] { "net7.0", "net8.0" }, new[] { "net7.0", "net8.0" } };
+        foreach (bool useArtifacts in new[] { true, false })
+        {
+            yield return new object[] { new[] { "net8.0" }, new[] { "net7.0" }, useArtifacts };
+            yield return new object[] { new[] { "net8.0" }, new[] { "net7.0", "net8.0" }, useArtifacts };
+            yield return new object[] { new[] { "net7.0", "net8.0" }, new[] { "net7.0" }, useArtifacts };
+            yield return new object[] { new[] { "net7.0", "net8.0" }, new[] { "net7.0", "net8.0" }, useArtifacts };
+        }
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -38,22 +41,23 @@ public class GivenAProjectWithAProjectReference: TestBase
 
     [Theory]
     [ClassData(typeof(TargetFrameworkData))]
-    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_ItShouldWarn(string[] mainTfms, string[] leafTfms)
+    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_ItShouldWarn(string[] mainTfms, string[] leafTfms, bool useArtifactsOutput)
     {
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator.Templates.DirectoryBuildProps(Temp, useArtifactsOutput);
+
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: false);
 
             ProjectCreator main = ProjectCreator.Templates
-                .SdkCsproj(mainTfms)
+                .MainProject(Temp, mainTfms, package)
                 .Property("GetPackFromProject_CopyToOutputDirectory", "Never")
-                .ItemPackageReference(package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }
                 })
-                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"));
+                .Save();
 
             main.TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
@@ -68,22 +72,23 @@ public class GivenAProjectWithAProjectReference: TestBase
 
     [Theory]
     [ClassData(typeof(TargetFrameworkData))]
-    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_WhenWarningsAreErrorsItShouldError(string[] mainTfms, string[] leafTfms)
+    public void WhenTheLeafDoesNotGenerateAPackageOnBuild_WhenWarningsAreErrorsItShouldError(string[] mainTfms, string[] leafTfms, bool useArtifactsOutput)
     {
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator.Templates.DirectoryBuildProps(Temp, useArtifactsOutput);
+
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: false);
 
             ProjectCreator.Templates
-                .SdkCsproj(mainTfms)
-                .ItemPackageReference(package)
+                .MainProject(Temp, mainTfms, package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }
                 })
                 .Property("MSBuildTreatWarningsAsErrors", "true")
-                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
+                .Save()
                 .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
             buildOutput.ErrorEvents.Should()
@@ -96,18 +101,19 @@ public class GivenAProjectWithAProjectReference: TestBase
 
     [Theory]
     [ClassData(typeof(TargetFrameworkData))]
-    public void WhenThePackageReferencePropertyIsNotUsed_ItShouldPass(string[] mainTfms, string[] leafTfms)
+    public void WhenThePackageReferencePropertyIsNotUsed_ItShouldPass(string[] mainTfms, string[] leafTfms, bool useArtifactsOutput)
     {
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: false, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator.Templates.DirectoryBuildProps(Temp, useArtifactsOutput);
+
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: false);
 
             ProjectCreator.Templates
-                .SdkCsproj(mainTfms)
-                .ItemPackageReference(package)
+                .MainProject(Temp, mainTfms, package)
                 .ItemProjectReference(leafProject)
-                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"))
+                .Save()
                 .TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
             buildOutput.ErrorEvents.Should().BeEmpty();
@@ -119,21 +125,21 @@ public class GivenAProjectWithAProjectReference: TestBase
 
     [Theory]
     [ClassData(typeof(TargetFrameworkData))]
-    public void WhenTheConfigurationIsCorrect_ShouldPassWhenLeafProjectHasProperty(string[] mainTfms, string[] leafTfms)
+    public void WhenTheConfigurationIsCorrect_ShouldPassWhenLeafProjectHasProperty(string[] mainTfms, string[] leafTfms, bool useArtifactsOutput)
     {
         string contentHasMetadata = "Content has metadata:";
         string projectsWithMetadata = "ProjectReferences with metadata:";
         string projectMetadata = "ProjectReferencesMetadata:";
-        char sep = Path.DirectorySeparatorChar;
 
         using (PackageRepository.Create(Temp.FullName)
             .Package(Package, out Package package))
         {
-            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(generatePackageOnBuild: true, leafTfms).Save(Path.Combine(Temp.FullName, "Leaf", "Leaf.csproj"));
+            ProjectCreator.Templates.DirectoryBuildProps(Temp, useArtifactsOutput);
+
+            ProjectCreator leafProject = ProjectCreator.Templates.ProjectThatProducesAPackage(Temp, leafTfms, generatePackageOnBuild: true);
 
             ProjectCreator main = ProjectCreator.Templates
-                .SdkCsproj(mainTfms)
-                .ItemPackageReference(package)
+                .MainProject(Temp, mainTfms, package)
                 .ItemProjectReference(leafProject, metadata: new Dictionary<string, string?>
                 {
                     { "AddPackageAsOutput", "true" }
@@ -154,7 +160,7 @@ public class GivenAProjectWithAProjectReference: TestBase
                         { "Text", $"{projectMetadata}%(ProjectReference.PackageOutputs)" },
                         { "Importance", "High" }
                     })
-                .Save(Path.Combine(Temp.FullName, "Sample", $"Sample.csproj"));
+                .Save();
 
             main.TryBuild(restore: true, target: "Build", out bool result, out BuildOutput buildOutput, out IDictionary<string, TargetResult>? outputs);
 
@@ -162,22 +168,43 @@ public class GivenAProjectWithAProjectReference: TestBase
             buildOutput.WarningEvents.Should().BeEmpty();
 
             buildOutput.Messages
-                .Where(message => message == $"{contentHasMetadata}{Temp.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg")
+                .Where(message => message == $"{contentHasMetadata}{GenerateLeafNupkgPath(useArtifactsOutput, Temp)}")
                 .Should().HaveCount(mainTfms.Length);
             buildOutput.Messages
                 .Where(message => message == $"{projectsWithMetadata}{leafProject.FullPath}")
                 .Should().HaveCount(mainTfms.Length);
             buildOutput.Messages
-                .Where(message => message == $"{projectMetadata}{Temp.FullName}{sep}Leaf{sep}bin{sep}Debug{sep}Leaf.1.0.0-deadbeef.nupkg;{Temp.FullName}{sep}Leaf{sep}obj{sep}Debug{sep}Leaf.1.0.0-deadbeef.nuspec")
+                .Where(message => message == $"{projectMetadata}{GenerateLeafNupkgPath(useArtifactsOutput, Temp)};{GenerateLeafNuspecPath(useArtifactsOutput, Temp)}")
                 .Should()
                 .HaveCount(mainTfms.Length);
 
             result.Should().BeTrue();
 
-            string binDir = Path.Combine(Temp.FullName, "Sample", "bin", "Debug");
+            string binDir = Path.Combine(GenerateMainPackageDirectory(Temp, useArtifactsOutput));
             Directory.GetFiles(binDir, "Leaf*.nupkg", SearchOption.AllDirectories)
                 .Should()
                 .HaveCount(mainTfms.Length, "there should be a .nupkg per output directory");
         }
+    }
+
+    private static string GenerateMainPackageDirectory(DirectoryInfo directory, bool useArtifactsOutput)
+    {
+        return useArtifactsOutput
+            ? Path.Combine(directory.FullName, "artifacts", "bin", "Sample")
+            : Path.Combine(directory.FullName, "Sample", "bin", "Debug");
+    }
+
+    private static string GenerateLeafNupkgPath(bool useArtifactsOutput, DirectoryInfo directory)
+    {
+        return useArtifactsOutput
+            ? Path.Combine(directory.FullName, "artifacts", "package", "debug", "Leaf.1.0.0-deadbeef.nupkg")
+            : Path.Combine(directory.FullName, "Leaf", "bin", "Debug", "Leaf.1.0.0-deadbeef.nupkg");
+    }
+
+    private static string GenerateLeafNuspecPath(bool useArtifactsOutput, DirectoryInfo directory)
+    {
+        return useArtifactsOutput
+            ? Path.Combine(directory.FullName, "artifacts", "obj", "Leaf", "Debug", "Leaf.1.0.0-deadbeef.nuspec")
+            : Path.Combine(directory.FullName, "Leaf", "obj", "Debug", "Leaf.1.0.0-deadbeef.nuspec");
     }
 }

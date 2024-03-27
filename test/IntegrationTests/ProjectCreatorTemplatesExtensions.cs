@@ -1,10 +1,11 @@
-﻿using Microsoft.Build.Utilities.ProjectCreation;
+﻿using Microsoft.Build.Evaluation;
+using Microsoft.Build.Utilities.ProjectCreation;
 
 namespace GetPackFromProject.IntegrationTests;
 
 internal static class ProjectCreatorTemplatesExtensions
 {
-    public static ProjectCreator ProjectThatProducesAPackage(this ProjectCreatorTemplates templates, bool generatePackageOnBuild, string[] targetFrameworks)
+    public static ProjectCreator ProjectThatProducesAPackage(this ProjectCreatorTemplates templates, DirectoryInfo directory, string[] targetFrameworks, bool generatePackageOnBuild)
     {
         ProjectCreator project = templates
             .SdkCsproj(targetFrameworks)
@@ -15,6 +16,33 @@ internal static class ProjectCreatorTemplatesExtensions
             project.Property("GeneratePackageOnBuild", "true");
         }
 
+        project.Save(Path.Combine(directory.FullName, "Leaf", "Leaf.csproj"));
+
         return project;
     }
+
+    public static ProjectCreator MainProject(this ProjectCreatorTemplates templates, DirectoryInfo directory, string[] targetFrameworks, Package package)
+    {
+        ProjectCreator project = templates
+            .SdkCsproj(targetFrameworks)
+            .ItemPackageReference(package)
+            .Save(Path.Combine(directory.FullName, "Sample", $"Sample.csproj"));
+
+        return project;
+    }
+
+    public static ProjectCreator DirectoryBuildProps(this ProjectCreatorTemplates templates, DirectoryInfo directory, bool useArtifactsOutput)
+    {
+        ProjectCreator project = ProjectCreator.Create(
+                    path: Path.Combine(directory.FullName, "Directory.Build.props"),
+                    projectFileOptions: NewProjectFileOptions.None);
+
+        if (useArtifactsOutput)
+        {
+            project.Property("UseArtifactsOutput", "true");
+        }
+
+        return project.Save();
+    }
+
 }
