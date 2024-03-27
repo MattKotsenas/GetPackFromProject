@@ -1,10 +1,11 @@
-﻿using Microsoft.Build.Utilities.ProjectCreation;
+﻿using Microsoft.Build.Evaluation;
+using Microsoft.Build.Utilities.ProjectCreation;
 
 namespace GetPackFromProject.IntegrationTests;
 
 internal static class ProjectCreatorTemplatesExtensions
 {
-    public static ProjectCreator ProjectThatProducesAPackage(this ProjectCreatorTemplates templates, bool generatePackageOnBuild, string[] targetFrameworks)
+    public static ProjectCreator ProjectThatProducesAPackage(this ProjectCreatorTemplates templates, string[] targetFrameworks, bool generatePackageOnBuild)
     {
         ProjectCreator project = templates
             .SdkCsproj(targetFrameworks)
@@ -18,11 +19,27 @@ internal static class ProjectCreatorTemplatesExtensions
         return project;
     }
 
-    public static ProjectCreator MainProject(this ProjectCreatorTemplates templates, string[] targetFrameworks, Package package, bool useArtifactsOutput)
+    public static ProjectCreator MainProject(this ProjectCreatorTemplates templates, string[] targetFrameworks, Package package)
     {
-        return templates
+        ProjectCreator project = templates
             .SdkCsproj(targetFrameworks)
-            .Property("UseArtifactsOutput", useArtifactsOutput.ToString().ToLowerInvariant())
             .ItemPackageReference(package);
+
+        return project;
     }
+
+    public static ProjectCreator DirectoryBuildProps(this ProjectCreatorTemplates templates, DirectoryInfo directory, bool useArtifactsOutput)
+    {
+        ProjectCreator project = ProjectCreator.Create(
+                    path: Path.Combine(directory.FullName, "Directory.Build.props"),
+                    projectFileOptions: NewProjectFileOptions.None);
+
+        if (useArtifactsOutput)
+        {
+            project.Property("UseArtifactsOutput", "true");
+        }
+
+        return project.Save();
+    }
+
 }
