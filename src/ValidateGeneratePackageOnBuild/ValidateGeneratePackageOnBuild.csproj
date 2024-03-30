@@ -2,41 +2,90 @@
 
   <PropertyGroup>
     <TargetFrameworks>net462;net6.0</TargetFrameworks>
-    <IsPackable>false</IsPackable>
     <RootNamespace>GetPackFromProject.MSBuild.ValidateGeneratePackageOnBuild</RootNamespace>
     <AssemblyName>$(RootNamespace)</AssemblyName>
-    <GenerateDependencyFile>true</GenerateDependencyFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!-- TODO: Remove DisableFastUpToDateCheck=true once https://github.com/dotnet/msbuild/issues/9953 is fixed. -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>GetPackFromProject</PackageId>
+    <Authors>MattKotsenas</Authors>
+    <Description>An MSBuild task helper to simplify testing NuGet packages by automatically ensuring the latest package is built and placed in the output directory for test projects.</Description>
+    <PackageTags>NuGet, MSBuild</PackageTags>
+    <Copyright>Copyright 2024. All rights reserved</Copyright>
+    <PackageProjectUrl>https://github.com/MattKotsenas/GetPackFromProject</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <DevelopmentDependency>true</DevelopmentDependency>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- TODO: Extract these into an MSBuild task SDK -->
+    <!-- TODO: Make an ItemGroupDefintion to mark everything as PrivateAssets="All" -->
+    <!-- TODO: Add ExcludeAssets="runtime" for MSBuild assemblies: https://github.com/microsoft/MSBuildLocator/blob/198e001f14230163ea5d992fdc1dbaf256139dbc/src/MSBuildLocator/build/Microsoft.Build.Locator.targets#L2 -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <GenerateDependencyFile>true</GenerateDependencyFile>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <!-- This target will run when MSBuild is collecting the files to be packaged, and we'll implement it below. This property controls the dependency list for this packaging process, so by adding our custom property we hook ourselves into the process in a supported way. -->
+    <TargetsForTfmSpecificBuildOutput>
+      $(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage
+    </TargetsForTfmSpecificBuildOutput>
+    <!-- This property tells MSBuild where the root folder of the package's build assets should be. Because we are not a library package, we should not pack to 'lib'. Instead, we choose 'tasks' by convention. -->
+    <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
+    <!--
+      NuGet validates that libs in a package are exposed as dependencies, but we _explicitly_ do not want that behavior for MSBuild tasks.
+      They are isolated by design. Therefore we ignore NU5100.
+    -->
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
+  </PropertyGroup>
+
+  <!-- TODO: Add this to MSBuild task SDK -->
+  <!-- This is the target we defined above. It's purpose is to add all of our PackageReference and ProjectReference's runtime assets to our package output.  -->
+  <Target
+      Name="CopyProjectReferencesToPackage"
+      DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <!-- The TargetPath is the path inside the package that the source file will be placed. This is already precomputed in the ReferenceCopyLocalPaths items' DestinationSubPath, so reuse it here. -->
+      <BuildOutputInPackage
+          Include="@(ReferenceCopyLocalPaths)"
+          TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- TODO: Add this to MSBuild task SDK -->
+  <!-- This target adds the generated deps.json file to our package output -->
+  <Target
+          Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput"
+          BeforeTargets="BuiltProjectOutputGroup"
+          Condition=" '$(GenerateDependencyFile)' == 'true'">
+
+    <ItemGroup>
+      <BuiltProjectOutputGroupOutput
+          Include="$(ProjectDepsFilePath)"
+          TargetPath="$(ProjectDepsFileName)"
+          FinalOutputPath="$(ProjectDepsFilePath)" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <!-- Part of the SDK -->
-    <PackageReference Include="Microsoft.Build" Version="[15.9.20]" PrivateAssets="All" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="[15.9.20]" PrivateAssets="All" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build" Version="15.9.20" PrivateAssets="All" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.9.20" PrivateAssets="All" ExcludeAssets="runtime" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
     <!-- Part of the SDK -->
-    <PackageReference Include="Microsoft.Build" Version="[17.2.0]" PrivateAssets="All" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="[17.2.0]" PrivateAssets="All" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build" Version="17.2.0" PrivateAssets="All" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.2.0" PrivateAssets="All" ExcludeAssets="runtime" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="build/GetPackFromProject.props">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="build/GetPackFromProject.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="buildTransitive/GetPackFromProject.props">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="buildTransitive/GetPackFromProject.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="buildMultiTargeting/GetPackFromProject.props">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="buildMultiTargeting/GetPackFromProject.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Content Include="build/**/*" Pack="true" PackagePath="build/" />
+    <Content Include="buildTransitive/**/*" Pack="true" PackagePath="buildTransitive/" />
+    <Content Include="buildMultiTargeting/**/*" Pack="true" PackagePath="buildMultiTargeting/" />
+    <Content Include="$(RepoRoot)/README.md" Pack="true" PackagePath="" />
+    <Content Include="$(RepoRoot)/icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

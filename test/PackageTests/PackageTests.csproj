@@ -24,18 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)/src/Package/Package.csproj">
-      <GlobalPropertiesToRemove>TargetFramework;TargetFrameworks</GlobalPropertiesToRemove>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
-      <Private>false</Private>
-      <ExcludeAssets>all</ExcludeAssets>
-    </ProjectReference>
+    <ProjectReference Include="$(RepoRoot)/src/ValidateGeneratePackageOnBuild/ValidateGeneratePackageOnBuild.csproj" />
   </ItemGroup>
 
   <Target Name="AddBuiltContent" BeforeTargets="AssignTargetPaths">
