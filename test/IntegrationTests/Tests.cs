@@ -1,46 +1,36 @@
-using System.Collections;
-
 using FluentAssertions;
-
 using Microsoft.Build.Execution;
 using Microsoft.Build.Utilities.ProjectCreation;
 
-using Xunit.Abstractions;
-
 namespace GetPackFromProject.IntegrationTests;
 
-public class TargetFrameworkData : IEnumerable<object[]>
-{
-    public IEnumerator<object[]> GetEnumerator()
-    {
-        foreach (bool useArtifacts in new[] { true, false })
-        {
-            yield return new object[] { new[] { "net8.0" }, new[] { "net7.0" }, useArtifacts };
-            yield return new object[] { new[] { "net8.0" }, new[] { "net7.0", "net8.0" }, useArtifacts };
-            yield return new object[] { new[] { "net7.0", "net8.0" }, new[] { "net7.0" }, useArtifacts };
-            yield return new object[] { new[] { "net7.0", "net8.0" }, new[] { "net7.0", "net8.0" }, useArtifacts };
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-}
+[TestClass]
 
 public class GivenAProjectWithAProjectReference: TestBase
 {
+    public static IEnumerable<object[]> TargetFrameworkData
+    {
+        get
+        {
+            foreach (bool useArtifacts in new[] { true, false })
+            {
+                yield return new object[] { new[] { "net8.0" }, new[] { "net7.0" }, useArtifacts };
+                yield return new object[] { new[] { "net8.0" }, new[] { "net7.0", "net8.0" }, useArtifacts };
+                yield return new object[] { new[] { "net7.0", "net8.0" }, new[] { "net7.0" }, useArtifacts };
+                yield return new object[] { new[] { "net7.0", "net8.0" }, new[] { "net7.0", "net8.0" }, useArtifacts };
+            }
+        }
+    }
+
     protected FileInfo Package { get; private set; }
 
-    public GivenAProjectWithAProjectReference(ITestOutputHelper logger) : base(logger)
+    public GivenAProjectWithAProjectReference()
     {
-        logger.WriteLine($"Enumerating files:{string.Join("\n\t", WorkingDirectory.GetFiles().Select(f => f.FullName))}");
-
         Package = WorkingDirectory.GetFiles("GetPackFromProject.*.nupkg").OrderByDescending(f => f.LastWriteTimeUtc).First();
     }
 
-    [Theory]
-    [ClassData(typeof(TargetFrameworkData))]
+    [TestMethod]
+    [DynamicData(nameof(TargetFrameworkData))]
     public void WhenTheLeafDoesNotGenerateAPackageOnBuild_ItShouldWarn(string[] mainTfms, string[] leafTfms, bool useArtifactsOutput)
     {
         using (PackageRepository.Create(Temp.FullName)
@@ -70,8 +60,8 @@ public class GivenAProjectWithAProjectReference: TestBase
         }
     }
 
-    [Theory]
-    [ClassData(typeof(TargetFrameworkData))]
+    [TestMethod]
+    [DynamicData(nameof(TargetFrameworkData))]
     public void WhenTheLeafDoesNotGenerateAPackageOnBuild_WhenWarningsAreErrorsItShouldError(string[] mainTfms, string[] leafTfms, bool useArtifactsOutput)
     {
         using (PackageRepository.Create(Temp.FullName)
@@ -99,8 +89,8 @@ public class GivenAProjectWithAProjectReference: TestBase
         }
     }
 
-    [Theory]
-    [ClassData(typeof(TargetFrameworkData))]
+    [TestMethod]
+    [DynamicData(nameof(TargetFrameworkData))]
     public void WhenThePackageReferencePropertyIsNotUsed_ItShouldPass(string[] mainTfms, string[] leafTfms, bool useArtifactsOutput)
     {
         using (PackageRepository.Create(Temp.FullName)
@@ -123,8 +113,8 @@ public class GivenAProjectWithAProjectReference: TestBase
         }
     }
 
-    [Theory]
-    [ClassData(typeof(TargetFrameworkData))]
+    [TestMethod]
+    [DynamicData(nameof(TargetFrameworkData))]
     public void WhenTheConfigurationIsCorrect_ShouldPassWhenLeafProjectHasProperty(string[] mainTfms, string[] leafTfms, bool useArtifactsOutput)
     {
         string contentHasMetadata = "Content has metadata:";

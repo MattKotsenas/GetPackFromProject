@@ -1,7 +1,5 @@
 ﻿using System.Reflection;
 
-using Xunit.Abstractions;
-
 namespace GetPackFromProject.IntegrationTests;
 
 public abstract class TestBase : IDisposable
@@ -11,13 +9,11 @@ public abstract class TestBase : IDisposable
     protected DirectoryInfo Temp { get; private set; }
     protected static DirectoryInfo WorkingDirectory { get; } = GetWorkingDirectory();
 
-    protected TestBase(ITestOutputHelper logger)
+    protected TestBase()
     {
         Temp = new DirectoryInfo(GetRandomTempPath());
 
         Temp.Create();
-
-        logger.WriteLine($"Temp directory: {Temp.FullName}");
     }
 
     protected virtual void Dispose(bool disposing)
