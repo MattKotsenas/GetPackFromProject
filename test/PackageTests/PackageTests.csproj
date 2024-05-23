@@ -15,7 +15,7 @@
     </PackageReference>
     <PackageReference Include="MSTest" Version="3.3.1" />
     <PackageReference Include="Verify.Nupkg" Version="1.1.1" />
-    <PackageReference Include="Verify.MSTest" Version="24.3.0-beta.2" /><!-- Validating new MSTest source generator -->
+    <PackageReference Include="Verify.MSTest" Version="24.3.0-beta.4" /><!-- Validating new MSTest source generator -->
   </ItemGroup>
 
   <ItemGroup>

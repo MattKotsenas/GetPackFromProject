@@ -3,7 +3,6 @@ using System.Reflection;
 namespace GetPackFromProject.PackageTests;
 
 [TestClass]
-[UsesVerify]
 public partial class Baselines
 {
     private static readonly VerifySettings VerifySettings = new VerifySettings().ScrubNuspec();
