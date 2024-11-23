@@ -5,8 +5,6 @@ namespace GetPackFromProject.PackageTests;
 [TestClass]
 public partial class Baselines
 {
-    private static readonly VerifySettings VerifySettings = new VerifySettings().ScrubNuspec();
-
     [TestMethod]
     public Task Match()
     {
@@ -14,7 +12,7 @@ public partial class Baselines
 
         FileInfo package = workingDirectory.GetFiles("GetPackFromProject.*.nupkg").OrderByDescending(f => f.LastWriteTimeUtc).First();
 
-        return VerifyFile(package, VerifySettings);
+        return VerifyFile(package).ScrubNuspec();
     }
 
     private DirectoryInfo GetWorkingDirectory()

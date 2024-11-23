@@ -12,6 +12,6 @@
     <description>An MSBuild task helper to simplify testing NuGet packages by automatically ensuring the latest package is built and placed in the output directory for test projects.</description>
     <copyright>Copyright 2024. All rights reserved</copyright>
     <tags>NuGet, MSBuild</tags>
-    <repository type="git" url="https://github.com/MattKotsenas/GetPackFromProject.git" branch="refs/heads/refactor/dotnet-9" commit="****************************************" />
+    <repository type="git" url="https://github.com/********/GetPackFromProject.git" branch="********" commit="****************************************" />
   </metadata>
 </package>
