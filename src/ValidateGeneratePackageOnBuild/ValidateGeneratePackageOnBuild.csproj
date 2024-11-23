@@ -24,7 +24,7 @@
 
   <PropertyGroup>
     <!-- TODO: Extract these into an MSBuild task SDK -->
-    <!-- TODO: Make an ItemGroupDefintion to mark everything as PrivateAssets="All" -->
+    <!-- TODO: Make an ItemGroupDefinition to mark everything as PrivateAssets="All" -->
     <!-- TODO: Add ExcludeAssets="runtime" for MSBuild assemblies: https://github.com/microsoft/MSBuildLocator/blob/198e001f14230163ea5d992fdc1dbaf256139dbc/src/MSBuildLocator/build/Microsoft.Build.Locator.targets#L2 -->
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <GenerateDependencyFile>true</GenerateDependencyFile>

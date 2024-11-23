@@ -4,6 +4,13 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!--
+      Setting audit to direct only because as a lib (as opposed to an app)
+      we need to be permissive for compatibility; it's the app's responsibility
+      to reify the dependency tree.
+    -->
+    <NuGetAuditMode>direct</NuGetAuditMode>
   </PropertyGroup>
 
 </Project>
