@@ -26,20 +26,20 @@
     Condition="'$(GetPackFromProject_IsOuterBuild)' == 'true'">
 
     <!--
-      Pack is an outer-build target, thus when the leaf is crosstargeting / multi-targeting
+      Pack is an outer build target, thus when the leaf is crosstargeting / multi-targeting
       we need to call Pack ourselves.
 
       TODO: This does more work than necessary when leaf is single-targeting.
 
-      Since the referencing project is multi-targeting, call build now to avoid races /
-      locked files trying to build twice during inner builds.
+      Since the referencing project is multi-targeting, pack before dispatching to inner builds
+      to avoid races / locked files trying to build twice during inner builds.
     -->
 
     <!--
-      Use the 'Build' target and not 'Pack' because the project may not be built yet, and Pack doesn't ensure a
+      Target 'Build' and 'Pack' because the project may not be built yet and Pack doesn't ensure a
       build like `dotnet build` does.
     -->
-    <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="Build" />
+    <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="Build;Pack" />
   </Target>
 
   <Target
@@ -47,23 +47,23 @@
     DependsOnTargets="GetPackFromProject_CollectProjectReferences"
     Condition="'$(GetPackFromProject_IsMultiTargeted)' != 'true'">
     <!--
-      Pack is an outer-build target, thus when the leaf is crosstargeting / multi-targeting
+      Pack is an outer build target, thus when the leaf is crosstargeting / multi-targeting
       we need to call Pack ourselves.
 
       TODO: This does more work than necessary when leaf is single-targeting.
 
-      Since the referencing project is single-targeting, call build now.
+      Since the referencing project is single-targeting, pack can happen whenever needed.
     -->
 
     <!--
-      Use the 'Build' target and not 'Pack' because the project may not be built yet, and Pack doesn't ensure a
+      Target 'Build' and 'Pack' because the project may not be built yet and Pack doesn't ensure a
       build like `dotnet build` does.
     -->
-    <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="Build" />
+    <MSBuild Projects="%(_ProjectsToCopy.Identity)" Targets="Build;Pack" />
   </Target>
 
   <Target
-    Name="AddProjectPackagesAsOutput"
+    Name="GetPackFromProject_AddProjectPackagesAsOutput"
     DependsOnTargets="GetPackFromProject_CollectProjectReferences;GetPackFromProject_PackForSingleTarget"
     BeforeTargets="AssignTargetPaths">
 
