@@ -2,6 +2,13 @@
 
   <PropertyGroup>
     <ArtifactsTestResultsPath>$(RepoRoot)/artifacts/TestResults</ArtifactsTestResultsPath>
+
+    <!--
+      Defer adoption of the Microsoft Testing Platform for now.
+
+      See https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-platform-intro?tabs=dotnetcli)
+    -->
+    <UseVSTest>true</UseVSTest>
   </PropertyGroup>
 
 </Project>

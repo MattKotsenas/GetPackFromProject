@@ -4,6 +4,7 @@
 
       <PropertyGroup>
         <!-- Enable test logging to TRX files and place them in the artifacts directory -->
+        <!-- TODO: When https://github.com/microsoft/vstest/issues/5132 ships, suppress overwrite warning -->
         <VSTestLogger>trx%3bLogFileName=$(MSBuildProjectName).trx</VSTestLogger>
         <VSTestResultsDirectory Condition="'$(VSTestResultsDirectory)' == ''">$(ArtifactsTestResultsPath)/$(TargetFramework)</VSTestResultsDirectory>
       </PropertyGroup>
